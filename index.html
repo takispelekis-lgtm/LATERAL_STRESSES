@@ -139,6 +139,19 @@
       const midPoleX = isFailing && mainF ? (toX(sigmaH) + toX(mainF.x))/2 : 0;
       const midPoleY = isFailing && mainF ? (toY(0) + toY(mainF.y))/2 : 0;
 
+      const wallBaseX = 220;
+      const wallTopY = 30;
+      const wallBotY = 130;
+      const wallH = wallBotY - wallTopY;
+      const currWallX = wallBaseX - stateParam * 10;
+      const failRad = (stateParam < 0 ? activeAngle : passiveAngle) * Math.PI / 180;
+      const exitX = currWallX - wallH / Math.tan(failRad);
+      
+      const vbLeft = isFailing ? Math.min(wallBaseX - 120, exitX - 50) : wallBaseX - 120;
+      const vbRight = wallBaseX + 40;
+      const vbWidth = vbRight - vbLeft;
+      const vbHeight = 150;
+
       return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
           {showProof && (
@@ -323,11 +336,9 @@
                   <text x={svgWidth - 45} y={toY(0) - 10} fill="#475569" fontSize="14" fontStyle="italic">σ (kPa)</text>
                   <text x={toX(0) - 35} y={20} fill="#475569" fontSize="14" fontStyle="italic">τ (kPa)</text>
 
-                  {/* Ενημερωμένη περιβάλλουσα αστοχίας με συνοχή */}
                   <line x1={toX(-c / Math.tan(phiRad))} y1={toY(0)} x2={toX(1000 / zoom)} y2={toY(c + (1000 / zoom) * Math.tan(phiRad))} stroke="#ef4444" strokeWidth="2" />
                   <line x1={toX(-c / Math.tan(phiRad))} y1={toY(0)} x2={toX(1000 / zoom)} y2={toY(-(c + (1000 / zoom) * Math.tan(phiRad)))} stroke="#ef4444" strokeWidth="2" strokeDasharray="4 4"/>
                   
-                  {/* Κείμενο Κριτηρίου Αστοχίας */}
                   <text transform={`rotate(${-phi}, ${toX(0)}, ${toY(c)})`} x={toX(120)} y={toY(c) - 8} fill="#ef4444" fontSize="12" fontWeight="bold">Κριτήριο Αστοχίας τ = c + σ·tan(φ)</text>
 
                   <circle cx={toX(center)} cy={toY(0)} r={radius * zoom} fill="rgba(59, 130, 246, 0.05)" stroke={isFailing ? "#ef4444" : "#3b82f6"} strokeWidth="2.5" />
@@ -354,7 +365,6 @@
                       
                       <line x1={toX(sigmaH)} y1={toY(0)} x2={toX(mainF.x)} y2={toY(mainF.y)} stroke="#f59e0b" strokeWidth="3" />
                       
-                      {/* Κείμενο 2 γραμμών δίπλα από την πορτοκαλί γραμμή */}
                       <text x={midPoleX} y={midPoleY - 15} fontSize="10" fill="#d97706" fontWeight="bold" textAnchor={stateParam < 0 ? "start" : "end"}>Παράλληλη με το</text>
                       <text x={midPoleX} y={midPoleY - 3} fontSize="10" fill="#d97706" fontWeight="bold" textAnchor={stateParam < 0 ? "start" : "end"}>επίπεδο αστοχίας</text>
                       
@@ -383,33 +393,36 @@
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
               <h2 className="text-lg font-bold text-slate-700 mb-4">Φυσικό Μοντέλο</h2>
-              <div className="relative w-full flex-1 min-h-[300px] bg-[#f8fafc] rounded border border-slate-100 overflow-hidden flex items-center">
-                <svg viewBox="0 0 280 120" className="w-full h-auto">
-                  <rect x="0" y="20" width="200" height="90" fill="#fcd34d" opacity="0.3" />
-                  <line x1="0" y1="20" x2="200" y2="20" stroke="#b45309" strokeWidth="2" />
+              <div className="relative w-full flex-1 min-h-[300px] bg-[#f8fafc] rounded border border-slate-100 overflow-hidden flex items-center justify-center">
+                
+                <svg viewBox={`${vbLeft} 0 ${vbWidth} ${vbHeight}`} className="w-full h-auto max-h-full">
+                  <defs>
+                    <marker id="arrowHeadTab1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b" /></marker>
+                  </defs>
                   
-                  <g transform={`translate(${-stateParam * 10}, 0)`}>
-                    <rect x="200" y="20" width="10" height="70" fill="#64748b" />
-                    <line x1="200" y1="20" x2="200" y2="90" stroke="#334155" strokeWidth="1" />
-                    {stateParam < 0 && <path d="M215,55 L225,55 L225,50 L235,57.5 L225,65 L225,60 L215,60 Z" fill="#ef4444" />}
-                    {stateParam > 0 && <path d="M235,55 L225,55 L225,50 L215,57.5 L225,65 L225,60 L235,60 Z" fill="#3b82f6" />}
-                  </g>
+                  <rect x={vbLeft} y={wallTopY} width={currWallX - vbLeft} height={wallH} fill="#fcd34d" opacity="0.3" />
+                  <line x1={vbLeft} y1={wallTopY} x2={currWallX} y2={wallTopY} stroke="#b45309" strokeWidth="2" />
+                  
+                  <rect x={currWallX} y={wallTopY} width="10" height={wallH} fill="#64748b" />
+                  <line x1={currWallX} y1={wallTopY} x2={currWallX} y2={wallBotY} stroke="#334155" strokeWidth="1" />
+                  
+                  {stateParam < 0 && <path d={`M${currWallX+15},${wallTopY+35} L${currWallX+25},${wallTopY+35} L${currWallX+25},${wallTopY+30} L${currWallX+35},${wallTopY+37.5} L${currWallX+25},${wallTopY+45} L${currWallX+25},${wallTopY+40} L${currWallX+15},${wallTopY+40} Z`} fill="#ef4444" />}
+                  {stateParam > 0 && <path d={`M${currWallX+35},${wallTopY+35} L${currWallX+25},${wallTopY+35} L${currWallX+25},${wallTopY+30} L${currWallX+15},${wallTopY+37.5} L${currWallX+25},${wallTopY+45} L${currWallX+25},${wallTopY+40} L${currWallX+35},${wallTopY+40} Z`} fill="#3b82f6" />}
 
                   {isFailing && (
                     <g>
-                      <line x1={200 - stateParam * 10 - 70} y1={90} x2={200 - stateParam * 10} y2={90} stroke="#94a3b8" strokeWidth="1" strokeDasharray="3 3" />
-                      <line x1={200 - stateParam * 10} y1={90} x2={200 - stateParam * 10 - 70 / Math.tan((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)} y2={20} stroke="#f59e0b" strokeWidth="3" />
-                      <path d={`M${200 - stateParam * 10},90 L${200 - stateParam * 10},20 L${200 - stateParam * 10 - 70 / Math.tan((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)},20 Z`} fill="#f59e0b" opacity="0.15" />
+                      <line x1={exitX} y1={wallBotY} x2={currWallX} y2={wallBotY} stroke="#94a3b8" strokeWidth="1" strokeDasharray="3 3" />
+                      <line x1={currWallX} y1={wallBotY} x2={exitX} y2={wallTopY} stroke="#f59e0b" strokeWidth="3" />
+                      <path d={`M${currWallX},${wallBotY} L${currWallX},${wallTopY} L${exitX},${wallTopY} Z`} fill="#f59e0b" opacity="0.15" />
                       
-                      <path d={`M ${200 - stateParam * 10 - 25} 90 A 25 25 0 0 1 ${200 - stateParam * 10 - 25 * Math.cos((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)} ${90 - 25 * Math.sin((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)}`} fill="none" stroke="#f59e0b" strokeWidth="2" />
+                      <path d={`M ${currWallX - 25} ${wallBotY} A 25 25 0 0 1 ${currWallX - 25 * Math.cos(failRad)} ${wallBotY - 25 * Math.sin(failRad)}`} fill="none" stroke="#f59e0b" strokeWidth="2" />
                       
-                      {/* Αλλαγή θέσης του θ και προσθήκη βέλους για Επίπεδο Αστοχίας */}
-                      <text x={200 - stateParam * 10 - 40 * Math.cos((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180 / 2)} y={105} fill="#1e293b" fontSize="8" textAnchor="middle" fontWeight="bold">
+                      <text x={currWallX - 45 * Math.cos(failRad / 2)} y={wallBotY - 45 * Math.sin(failRad / 2) + 5} fill="#1e293b" fontSize="10" textAnchor="middle" fontWeight="bold">
                         <tspan>θ = 45° {stateParam < 0 ? '+' : '-'} φ/2</tspan>
                       </text>
                       
-                      <path d={`M${200 - stateParam * 10 - 45},30 L${200 - stateParam * 10 - 15 - 35/Math.tan((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)},55`} stroke="#1e293b" strokeWidth="1" markerEnd="url(#arrowHead)" opacity="0.7"/>
-                      <text x={200 - stateParam * 10 - 50} y={25} fontSize="8" fill="#1e293b" fontWeight="bold" textAnchor="middle">Επίπεδο Αστοχίας</text>
+                      <text x={exitX + 25} y={wallTopY - 20} fontSize="11" fill="#1e293b" fontWeight="bold" textAnchor="middle">Επίπεδο Αστοχίας</text>
+                      <path d={`M${exitX + 15},${wallTopY - 16} L${exitX + 3},${wallTopY - 4}`} stroke="#1e293b" strokeWidth="1.5" markerEnd="url(#arrowHeadTab1)"/>
                     </g>
                   )}
                 </svg>
@@ -455,7 +468,39 @@
         if (innerRootP >= 0) termP2 = Math.pow(1 - Math.sqrt(innerRootP), 2);
         const Kp = termP2 > 0 ? numP / (termP1 * termP2) : NaN;
 
-        return { Ka, Kp, alphaR, betaR, deltaR, phiR, omegaR };
+        const getRhoCoulomb = (isActive) => {
+            let bestR = isActive ? 45 + phi/2 : 45 - phi/2;
+            let extremeP = isActive ? -Infinity : Infinity;
+            let maxRhoDeg = omega < 0 ? 90 + omega - 0.1 : 89.9;
+            
+            for(let r = Math.max(beta + 0.1, 0.1); r <= maxRhoDeg; r += 0.1) {
+                let rhoR = toRad(r);
+                let wFactor = (1 + Math.tan(omegaR) * Math.tan(rhoR)) / (Math.tan(rhoR) - Math.tan(betaR));
+                if (wFactor <= 0) continue; 
+
+                if (isActive) {
+                    let num = Math.sin(rhoR - phiR);
+                    let den = Math.cos(rhoR - phiR - omegaR - deltaR);
+                    if (den > 0) {
+                        let Pa = wFactor * num / den;
+                        if (Pa > extremeP) { extremeP = Pa; bestR = r; }
+                    }
+                } else {
+                    let num = Math.sin(rhoR + phiR);
+                    let den = Math.cos(rhoR + phiR - omegaR + deltaR);
+                    if (den > 0) {
+                        let Pp = wFactor * num / den;
+                        if (Pp > 0 && Pp < extremeP) { extremeP = Pp; bestR = r; }
+                    }
+                }
+            }
+            return bestR;
+        };
+
+        const rhoA = getRhoCoulomb(true);
+        const rhoP = getRhoCoulomb(false);
+
+        return { Ka, Kp, alphaR, betaR, deltaR, phiR, omegaR, rhoA, rhoP };
       }, [phi, delta, omega, beta]);
 
       const isActive = coulombState === 'active';
@@ -467,19 +512,34 @@
       const tx = bx + H_wall * Math.cos(calculations.alphaR);
       const ty = by - H_wall * Math.sin(calculations.alphaR);
 
-      let baseRho = isActive ? 45 + phi/2 : 45 - phi/2;
-      if (!isActive && baseRho <= beta + 5) baseRho = beta + 5; 
+      let baseRho = isActive ? calculations.rhoA : calculations.rhoP;
       const rhoVisRad = baseRho * Math.PI / 180;
 
       const m1 = -Math.tan(calculations.betaR);
       const m2 = -Math.tan(rhoVisRad);
-      let fx = (m1 * tx - ty - m2 * bx + by) / (m1 - m2);
-      let fy = m1 * (fx - tx) + ty;
+      let trueFx = (m1 * tx - ty - m2 * bx + by) / (m1 - m2);
+      let trueFy = m1 * (trueFx - tx) + ty;
       
-      if (fx > svgW - 20) { fx = svgW - 20; fy = m2 * (fx - bx) + by; }
+      let polyPoints = "";
+      let fx = trueFx, fy = trueFy;
+      let wx, wy;
 
-      const wx = (bx + tx + fx) / 3;
-      const wy = (by + ty + fy) / 3;
+      if (trueFx > svgW - 20) { 
+        fx = svgW - 20; 
+        let fyTop = m1 * (fx - tx) + ty;
+        let fyBot = m2 * (fx - bx) + by;
+        polyPoints = `${bx},${by} ${tx},${ty} ${fx},${fyTop} ${fx},${fyBot}`;
+        wx = (bx + tx + fx + fx) / 4;
+        wy = (by + ty + fyTop + fyBot) / 4;
+      } else {
+        polyPoints = `${bx},${by} ${tx},${ty} ${fx},${fy}`;
+        wx = (bx + tx + fx) / 3;
+        wy = (by + ty + fy) / 3;
+      }
+
+      if (wx > svgW - 40) {
+          wx = svgW - 80;
+      }
 
       const px = bx + (tx - bx) * 0.333;
       const py = by + (ty - by) * 0.333;
@@ -489,6 +549,35 @@
       const pLen = 90;
       const pStartX = px + pLen * Math.cos(pAngleLeft);
       const pStartY = py - pLen * Math.sin(pAngleLeft);
+
+      const bgX = Math.max(svgW, fx) + 500;
+      const bgY = ty - (bgX - tx) * Math.tan(calculations.betaR);
+
+      // --- ΝΕΟ: ΥΠΟΛΟΓΙΣΜΟΣ ΖΩΝΤΑΝΟΥ ΔΥΝΑΜΟΠΟΛΥΓΩΝΟΥ ---
+      const L_W = 100; // Σταθερό οπτικό μήκος του Βάρους W
+      
+      // Γωνία R (από την οριζόντιο) - Κάθετη στο επίπεδο + τριβή
+      const thetaR_deg = 90 + baseRho - (isActive ? phi : -phi);
+      const thetaR_rad = thetaR_deg * Math.PI / 180;
+      
+      const cosP = Math.cos(pAngleLeft);
+      const sinP = Math.sin(pAngleLeft);
+      const cosR = Math.cos(thetaR_rad);
+      const sinR = Math.sin(thetaR_rad);
+
+      // Επίλυση συστήματος διανυσμάτων (W + R + P = 0)
+      const denom = Math.sin(thetaR_rad - pAngleLeft);
+      const M_R_safe = (L_W * cosP) / denom;
+      
+      // Σημείο τομής διανυσμάτων R και P
+      const intX = M_R_safe * cosR;
+      const intY = L_W - M_R_safe * sinR;
+
+      // Δυναμικό ViewBox για να κεντράρεται τέλεια το τρίγωνο
+      const polyMinX = Math.min(0, intX) - 35;
+      const polyMaxX = Math.max(0, intX) + 35;
+      const polyMinY = Math.min(0, intY) - 25;
+      const polyMaxY = Math.max(L_W, intY) + 25;
 
       return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
@@ -544,6 +633,21 @@
                       <div className="bg-red-50 p-3 mt-3 rounded-lg font-serif text-center font-bold text-red-800 border border-red-100 flex justify-center items-center">
                         <Fraction num={<>dP<sub>a</sub></>} den="dθ" /> <span className="mx-2">= 0</span> &nbsp;&nbsp; ⇒ &nbsp;&nbsp; Προκύπτει ο συντελεστής K<sub>a</sub>
                       </div>
+                      
+                      <div className="bg-amber-50 p-4 mt-4 rounded-xl border border-amber-200 flex flex-col items-center">
+                        <p className="text-[13px] text-amber-900 mb-3 text-center leading-relaxed">
+                          Στη θεωρία του Coulomb για την ενεργητική ώθηση, η γωνία της κρίσιμης επιφάνειας αστοχίας (<strong>α<sub>a</sub></strong>) ως προς την οριζόντιο προκύπτει από τη μεγιστοποίηση της ώθησης <strong>P<sub>a</sub></strong>.
+                          <br/><br/>
+                          Ο τύπος για τη γωνία <strong>α<sub>a</sub></strong> (για οριζόντιο επίχωμα β = 0 και κατακόρυφο τοίχο ω = 0) είναι:
+                        </p>
+                        <div className="flex justify-center items-center font-serif text-base text-slate-800 font-bold bg-white px-4 py-3 rounded-lg shadow-sm border border-slate-200">
+                          <span>tan(α<sub>a</sub>) = tan(φ) + sec(φ)</span>
+                          <span className="text-2xl ml-2 font-light">√</span>
+                          <span className="border-t border-slate-800 ml-1 pt-1 mt-2">
+                              <Fraction num={<>tan(φ) · cos(δ)</>} den={<>tan(φ) + tan(δ)</>} />
+                          </span>
+                        </div>
+                      </div>
                     </section>
                   </div>
                 </div>
@@ -569,7 +673,6 @@
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700">Κλίση Τοίχου, ω ({omega}°)</label>
-                {/* ΝΕΟ: Ω παίρνει και αρνητικές τιμές */}
                 <input type="range" min="-20" max="20" value={omega} onChange={(e) => setOmega(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg accent-slate-600"/>
               </div>
               <div className="space-y-2">
@@ -597,6 +700,49 @@
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
               <h2 className="text-lg font-bold text-slate-700 mb-4">Θεωρία Σφήνας Coulomb - {isActive ? 'Ενεργητική' : 'Παθητική'} Κατάσταση</h2>
               <div className="w-full bg-[#fafaf9] rounded-xl border border-slate-200 relative overflow-hidden flex items-center justify-center min-h-[400px]">
+                
+                {/* ΕΝΘΕΤΟ ΛΥΣΗΣ ΚΑΙ ΖΩΝΤΑΝΟ ΔΥΝΑΜΟΠΟΛΥΓΩΝΟ */}
+                <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur p-4 rounded-xl shadow-lg border border-slate-200 text-sm z-10 min-w-[240px] flex flex-col gap-4">
+                  
+                  {/* Δυναμοπολύγωνο (Live) */}
+                  <div className="flex flex-col items-center border-b border-slate-100 pb-4">
+                    <h4 className="font-bold text-slate-600 mb-2 text-xs uppercase tracking-wider">Δυναμοπολύγωνο</h4>
+                    <svg viewBox={`${polyMinX} ${polyMinY} ${polyMaxX - polyMinX} ${polyMaxY - polyMinY}`} className="w-full h-auto max-h-[140px]">
+                      <defs>
+                        <marker id="poly-arrow-w" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b" /></marker>
+                        <marker id="poly-arrow-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" /></marker>
+                        <marker id="poly-arrow-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill={isActive ? "#ef4444" : "#3b82f6"} /></marker>
+                      </defs>
+                      
+                      {/* Διάνυσμα W (Προς τα κάτω) */}
+                      <line x1="0" y1="0" x2="0" y2={L_W} stroke="#1e293b" strokeWidth="3" markerEnd="url(#poly-arrow-w)" />
+                      <text x="10" y={L_W/2 + 5} fontSize="16" fill="#1e293b" fontWeight="bold">W</text>
+                      
+                      {/* Διάνυσμα R (Από την αιχμή του W προς την τομή) */}
+                      <line x1="0" y1={L_W} x2={intX} y2={intY} stroke="#d97706" strokeWidth="3" markerEnd="url(#poly-arrow-r)" />
+                      <text x={intX/2 - 15} y={(L_W + intY)/2 + 20} fontSize="16" fill="#d97706" fontWeight="bold">R</text>
+
+                      {/* Διάνυσμα P (Από την τομή πίσω στο (0,0) κλείνοντας το τρίγωνο) */}
+                      <line x1={intX} y1={intY} x2="0" y2="0" stroke={isActive ? "#ef4444" : "#3b82f6"} strokeWidth="3" markerEnd="url(#poly-arrow-p)" />
+                      <text x={intX/2 - 25} y={intY/2 - 5} fontSize="16" fill={isActive ? "#ef4444" : "#3b82f6"} fontWeight="bold">P<tspan baselineShift="sub" fontSize="12">{isActive ? 'a' : 'p'}</tspan></text>
+                    </svg>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-slate-800 border-b pb-2 mb-2 text-xs uppercase tracking-wider">Υπολογισμένα Μεγέθη</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center gap-6">
+                        <span className="text-slate-600">Γωνία Αστοχίας (α):</span>
+                        <span className="font-bold text-slate-800">{baseRho.toFixed(1)}°</span>
+                      </div>
+                      <div className="flex justify-between items-center gap-6">
+                        <span className="text-slate-600">Συντελεστής (K<sub>{isActive ? 'a' : 'p'}</sub>):</span>
+                        <span className="font-bold text-slate-800">{(isActive ? calculations.Ka : calculations.Kp).toFixed(3)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full h-auto max-h-[500px]">
                   <defs>
                     <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1e293b" /></marker>
@@ -604,11 +750,11 @@
                     <marker id="arrowMove" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
                   </defs>
 
-                  <line x1="20" y1={by} x2={svgW - 20} y2={by} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="5 5" />
-                  <polygon points={`${fx},${fy} ${svgW},${ty - (svgW-tx)*Math.tan(calculations.betaR)} ${svgW},${by} ${bx},${by}`} fill="#fef08a" opacity="0.4" />
-                  <polygon points={`${bx},${by} ${tx},${ty} ${fx},${fy}`} fill="#fde047" opacity="0.8" stroke="#ca8a04" strokeWidth="1" />
-                  <line x1={tx} y1={ty} x2={svgW} y2={ty - (svgW - tx) * Math.tan(calculations.betaR)} stroke="#b45309" strokeWidth="2" />
-                  <line x1={bx} y1={by} x2={fx} y2={fy} stroke={isActive ? "#ef4444" : "#3b82f6"} strokeWidth="2.5" strokeDasharray="5 5" />
+                  <line x1="20" y1={by} x2={bgX} y2={by} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="5 5" />
+                  <polygon points={`${bx},${by} ${trueFx},${trueFy} ${bgX},${bgY} ${bgX},${by + 500} ${bx},${by + 500}`} fill="#fef08a" opacity="0.4" />
+                  <polygon points={polyPoints} fill="#fde047" opacity="0.8" stroke="#ca8a04" strokeWidth="1" />
+                  <line x1={tx} y1={ty} x2={bgX} y2={bgY} stroke="#b45309" strokeWidth="2" />
+                  <line x1={bx} y1={by} x2={trueFx > svgW - 20 ? svgW - 20 : fx} y2={trueFx > svgW - 20 ? (m2 * (svgW - 20 - bx) + by) : fy} stroke={isActive ? "#ef4444" : "#3b82f6"} strokeWidth="2.5" strokeDasharray="5 5" />
                   <polygon points={`${bx},${by} ${tx},${ty} ${tx-40},${ty} ${bx-40},${by}`} fill="#64748b" stroke="#334155" strokeWidth="1" />
 
                   <g transform={`translate(${tx - 30}, ${ty - 25})`}>
@@ -719,7 +865,7 @@
       const [excavationH, setExcavationH] = useState(6);
       const [hwActive, setHwActive] = useState(5);
       const [hwPassive, setHwPassive] = useState(7);
-      const [qLoad, setQLoad] = useState(0); // ΝΕΟ: Εξωτερικό φορτίο q
+      const [qLoad, setQLoad] = useState(0); 
       const [displayMode, setDisplayMode] = useState('stresses'); 
 
       const [layers, setLayers] = useState([
@@ -756,7 +902,7 @@
         const rect = e.currentTarget.getBoundingClientRect();
         const y = e.clientY - rect.top;
         const z = (y / rect.height) * totalH;
-        setHoverZ(Math.round(z * 2) / 2); // Snapping στο 0.5m
+        setHoverZ(Math.round(z * 2) / 2); 
       };
 
       const handleSvgClick = () => {
@@ -776,10 +922,10 @@
         let zPointsL = Array.from(zPointsSetL).filter(z => z >= excavationH && z <= totalH).sort((a, b) => a - b);
 
         let segmentsR = [], segmentsL = [];
-        let segmentsQ = []; // ΝΕΟ: Κατανομή λόγω q
+        let segmentsQ = []; 
         let segmentsVertR = [], segmentsVertL = []; 
         let svR = 0;
-        let zeroDepthsR = []; // ΝΕΟ: Βάθη όπου η οριζόντια τάση γίνεται μηδέν
+        let zeroDepthsR = []; 
 
         for (let i = 0; i < zPointsR.length - 1; i++) {
           let zTop = zPointsR[i];
@@ -804,26 +950,37 @@
 
           let Ka = Math.pow(Math.tan((45 - layer.phi / 2) * Math.PI / 180), 2);
           
-          // Φορτίο q
-          if (qLoad > 0) {
-            segmentsQ.push({ zTop, zBot, valTop: qLoad * Ka, valBot: qLoad * Ka, isNeg: false });
-          }
-
           let saTop = effTopR * Ka - 2 * layer.c * Math.sqrt(Ka);
           let saBot = effBotR * Ka - 2 * layer.c * Math.sqrt(Ka);
 
           if (saTop < 0 && saBot > 0) {
             let zZero = zTop + (0 - saTop) / (saBot - saTop) * dz;
-            zeroDepthsR.push(zZero); // Αποθήκευση σημείου μηδενισμού
+            zeroDepthsR.push(zZero); 
             segmentsR.push({ zTop, zBot: zZero, valTop: saTop, valBot: 0, isNeg: true });
             segmentsR.push({ zTop: zZero, zBot, valTop: 0, valBot: saBot, isNeg: false });
           } else if (saTop > 0 && saBot < 0) {
             let zZero = zTop + (0 - saTop) / (saBot - saTop) * dz;
-            zeroDepthsR.push(zZero); // Αποθήκευση σημείου μηδενισμού
+            zeroDepthsR.push(zZero); 
             segmentsR.push({ zTop, zBot: zZero, valTop: saTop, valBot: 0, isNeg: false });
             segmentsR.push({ zTop: zZero, zBot, valTop: 0, valBot: saBot, isNeg: true });
           } else {
             segmentsR.push({ zTop, zBot, valTop: saTop, valBot: saBot, isNeg: saTop < 0 });
+          }
+        }
+
+        // ΝΕΟ: Υπολογισμός Φορτίου q αυστηρά και μόνο με βάση τις αλλαγές στρώσεων (K_a)
+        if (qLoad > 0) {
+          let zPointsSetQ = new Set([0, totalH]);
+          layers.forEach(l => { if (l.z <= totalH) zPointsSetQ.add(l.z); });
+          let zPointsQ = Array.from(zPointsSetQ).sort((a, b) => a - b);
+          
+          for (let i = 0; i < zPointsQ.length - 1; i++) {
+            let zTop = zPointsQ[i];
+            let zBot = zPointsQ[i + 1];
+            let zMid = (zTop + zBot) / 2;
+            let layer = [...layers].reverse().find(l => l.z <= zMid) || layers[0];
+            let Ka = Math.pow(Math.tan((45 - layer.phi / 2) * Math.PI / 180), 2);
+            segmentsQ.push({ zTop, zBot, valTop: qLoad * Ka, valBot: qLoad * Ka, isNeg: false });
           }
         }
 
@@ -904,15 +1061,26 @@
       const { segmentsR, segmentsL, segmentsVertR, segmentsVertL, segmentsQ, zeroDepthsR, waterForceR, waterForceL, maxSa, maxSp, maxSv, maxUw, maxQ, fWL, fPL, fAR, fQ, fWR } = calculations;
 
       const svgH = totalH * 40;
-      // Προσαρμογή Πλατών: Προσθήκη wQ (100) για την κατανομή του φορτίου
-      const wWater = 90, wEarthL = 130, wVertL = 110, wCenter = 160, wVertR = 110, wEarthR = 130, wQ = 100; 
-      const totalSvgW = wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wQ + wWater;
       
-      const scaleU = (wWater - 25) / maxUw;
-      const scaleSp = (wEarthL - 35) / maxSp;
-      const scaleSv = (wVertL - 35) / maxSv;
-      const scaleSa = (wEarthR - 35) / maxSa;
-      const scaleQ = maxQ > 0 ? (wQ - 35) / maxQ : 1;
+      const wWaterBase = 90, wEarthLBase = 130, wVertLBase = 110, wCenterBase = 160, wVertRBase = 110, wEarthRBase = 130; 
+      
+      const scaleU = maxUw > 0 ? (wWaterBase - 25) / maxUw : 1;
+      const scaleSp = maxSp > 0 ? (wEarthLBase - 35) / maxSp : 1;
+      const scaleSv = maxSv > 0 ? (wVertLBase - 35) / maxSv : 1;
+      const scaleSa = maxSa > 0 ? (wEarthRBase - 35) / maxSa : 1;
+      
+      const scaleQ = scaleSa; 
+      const dynamicWQ = Math.max(80, maxQ * scaleQ + 70);
+
+      const wWater = wWaterBase;
+      const wEarthL = wEarthLBase;
+      const wVertL = wVertLBase;
+      const wCenter = wCenterBase;
+      const wVertR = wVertRBase;
+      const wEarthR = wEarthRBase;
+      const wQ = dynamicWQ;
+
+      const totalSvgW = wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wQ + wWater;
 
       const renderForcesVisuals = (forcesArray, axisX, color, markerId, isRightSide) => {
         return forcesArray.map((f) => {
@@ -1009,13 +1177,6 @@
       return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn relative">
           
-          {/* ΣΤΑΘΕΡΟ ΠΕΔΙΟ ΒΑΘΟΥΣ CURSOR */}
-          <div className="absolute -top-12 right-0 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md z-10 flex items-center gap-2">
-            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
-            Βάθος (z): {hoverZ !== null ? <span className="text-amber-400">{hoverZ.toFixed(1)} m</span> : <span className="text-slate-400">-</span>}
-          </div>
-
-          {/* Μειωμένο Πλάτος Sidebar (lg:col-span-2 αντί για 3) */}
           <div className="lg:col-span-2 flex flex-col gap-4">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-sm">
               <h3 className="font-bold text-slate-800 border-b pb-2 mb-3">Γενικά Στοιχεία</h3>
@@ -1100,229 +1261,232 @@
             </div>
           </div>
 
-          {/* Αυξημένος χώρος για SVG (lg:col-span-10) */}
           <div className="lg:col-span-10 flex flex-col gap-6">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-x-auto flex flex-col items-center relative">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-row items-start relative gap-4">
               
-              <div className="flex justify-center mb-6">
-                <div className="inline-flex bg-slate-100 rounded-lg p-1 border border-slate-200">
-                  <button onClick={() => setDisplayMode('stresses')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'stresses' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Κατανομές Τάσεων</button>
-                  <button onClick={() => setDisplayMode('forces')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'forces' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Συνολικές Δυνάμεις</button>
-                  <button onClick={() => setDisplayMode('resultants')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'resultants' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Συνισταμένες</button>
-                </div>
+              {/* ΚΑΘΕΤΑ ΚΟΥΜΠΙΑ (ΤΕΡΜΑ ΑΡΙΣΤΕΡΑ) */}
+              <div className="flex flex-col gap-2 shrink-0 pt-8 border-r border-slate-100 pr-4">
+                <button onClick={() => setDisplayMode('stresses')} className={`px-4 py-3 rounded-xl text-sm font-bold text-left transition-all ${displayMode === 'stresses' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  Κατανομές Τάσεων
+                </button>
+                <button onClick={() => setDisplayMode('forces')} className={`px-4 py-3 rounded-xl text-sm font-bold text-left transition-all ${displayMode === 'forces' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  Συνολικές Δυνάμεις
+                </button>
+                <button onClick={() => setDisplayMode('resultants')} className={`px-4 py-3 rounded-xl text-sm font-bold text-left transition-all ${displayMode === 'resultants' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  Συνισταμένες
+                </button>
               </div>
               
-              <div className="flex flex-row justify-center items-start min-w-[950px] w-full bg-white rounded-xl">
-                <svg viewBox={`0 -30 ${totalSvgW} ${svgH + 60}`} className="w-full h-auto max-h-[550px]" style={{ minHeight: '450px' }}>
-                  <defs>
-                    <marker id="arr-water" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
-                    <marker id="arr-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0d9488" /></marker>
-                    <marker id="arr-vert" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed" /></marker>
-                    <marker id="arr-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
-                    <marker id="arr-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" /></marker>
-                    <marker id="arr-q" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" /></marker>
-                    <marker id="arr-res-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b91c1c" /></marker>
-                    <marker id="arr-res-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e" /></marker>
-                  </defs>
+              {/* ΓΡΑΦΗΜΑ (ΔΕΞΙΑ) */}
+              <div className="flex-1 overflow-x-auto relative bg-[#fafaf9] rounded-xl border border-slate-200 p-4">
+                
+                {/* ΣΤΑΘΕΡΟ ΠΕΔΙΟ ΒΑΘΟΥΣ CURSOR ΜΕΣΑ ΣΤΟ ΔΙΑΓΡΑΜΜΑ */}
+                <div className="absolute top-4 right-4 bg-slate-800/90 backdrop-blur text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm z-10 flex items-center gap-2 border border-slate-600">
+                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                  Βάθος (z): {hoverZ !== null ? <span className="text-amber-400">{hoverZ.toFixed(1)} m</span> : <span className="text-slate-400">-</span>}
+                </div>
 
-                  {/* 1. ΥΔΡΟΣΤΑΤΙΚΗ ΑΡΙΣΤΕΡΑ */}
-                  <g transform={`translate(0, 0)`}>
-                    <text x={wWater - 5} y="-15" fontSize="12" fill="#3b82f6" fontWeight="bold" textAnchor="end">u</text>
-                    <line x1={wWater} y1="0" x2={wWater} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {waterForceL.map((seg, i) => (
-                      <g key={`wl-${i}`}>
-                        <polygon points={`${wWater},${seg.zTop*40} ${wWater - seg.valTop*scaleU},${seg.zTop*40} ${wWater - seg.valBot*scaleU},${seg.zBot*40} ${wWater},${seg.zBot*40}`} fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
-                        {displayMode === 'stresses' && renderArrows(seg, wWater, scaleU, "#3b82f6", "arr-water", false)}
-                        {displayMode === 'stresses' && renderLabels(seg, wWater, scaleU, false)}
-                      </g>
-                    ))}
-                    {displayMode === 'forces' && renderForcesVisuals(fWL, wWater, "#3b82f6", "arr-water", false)}
-                  </g>
+                <div className="min-w-[800px] w-full mt-6">
+                  <svg viewBox={`0 -30 ${totalSvgW} ${svgH + 60}`} className="w-full h-auto max-h-[550px]" style={{ minHeight: '450px' }}>
+                    <defs>
+                      <marker id="arr-water" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+                      <marker id="arr-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0d9488" /></marker>
+                      <marker id="arr-vert" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed" /></marker>
+                      <marker id="arr-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+                      <marker id="arr-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" /></marker>
+                      <marker id="arr-q" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" /></marker>
+                      <marker id="arr-res-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b91c1c" /></marker>
+                      <marker id="arr-res-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e" /></marker>
+                    </defs>
 
-                  {/* 2. ΠΑΘΗΤΙΚΕΣ ΑΡΙΣΤΕΡΑ */}
-                  <g transform={`translate(${wWater}, 0)`}>
-                    <text x={wEarthL - 5} y="-15" fontSize="12" fill="#0d9488" fontWeight="bold" textAnchor="end">Οριζόντιες Παθητικές σ'p</text>
-                    <line x1={wEarthL} y1={excavationH*40} x2={wEarthL} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {segmentsL.map((seg, i) => (
-                      <g key={`pl-${i}`}>
-                        <polygon points={`${wEarthL},${seg.zTop*40} ${wEarthL - seg.valTop*scaleSp},${seg.zTop*40} ${wEarthL - seg.valBot*scaleSp},${seg.zBot*40} ${wEarthL},${seg.zBot*40}`} fill="rgba(13,148,136,0.2)" stroke="#0d9488" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
-                        {displayMode === 'forces' && !seg.isNeg && Math.min(seg.valTop, seg.valBot) > 0.05 && Math.abs(seg.valTop - seg.valBot) > 0.05 && (
-                          <line x1={wEarthL - Math.min(seg.valTop, seg.valBot)*scaleSp} y1={seg.zTop*40} x2={wEarthL - Math.min(seg.valTop, seg.valBot)*scaleSp} y2={seg.zBot*40} stroke="#0d9488" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6"/>
-                        )}
-                        {displayMode === 'stresses' && renderArrows(seg, wEarthL, scaleSp, "#0d9488", "arr-pass", false)}
-                        {displayMode === 'stresses' && renderLabels(seg, wEarthL, scaleSp, false)}
-                      </g>
-                    ))}
-                    {displayMode === 'forces' && renderForcesVisuals(fPL, wEarthL, "#0d9488", "arr-pass", false)}
-                  </g>
-
-                  {/* 2B. ΚΑΤΑΚΟΡΥΦΕΣ ΕΝΕΡΓΕΣ ΤΑΣΕΙΣ (ΑΡΙΣΤΕΡΑ) */}
-                  <g transform={`translate(${wWater + wEarthL}, 0)`}>
-                    <text x={wVertL - 5} y="-15" fontSize="12" fill="#7c3aed" fontWeight="bold" textAnchor="end">σ'v</text>
-                    <line x1={wVertL} y1={excavationH*40} x2={wVertL} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {segmentsVertL.map((seg, i) => (
-                      <g key={`vl-${i}`}>
-                        <polygon points={`${wVertL},${seg.zTop*40} ${wVertL - seg.valTop*scaleSv},${seg.zTop*40} ${wVertL - seg.valBot*scaleSv},${seg.zBot*40} ${wVertL},${seg.zBot*40}`} fill="rgba(124,58,237,0.15)" stroke="#7c3aed" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.2} />
-                        {displayMode === 'stresses' && renderArrows(seg, wVertL, scaleSv, "#7c3aed", "arr-vert", false)}
-                        {displayMode === 'stresses' && renderLabels(seg, wVertL, scaleSv, false)}
-                      </g>
-                    ))}
-                  </g>
-
-                  {/* 3. ΚΕΝΤΡΙΚΟ ΦΥΣΙΚΟ ΜΟΝΤΕΛΟ */}
-                  <g transform={`translate(${wWater + wEarthL + wVertL}, 0)`} 
-                      onMouseMove={handleSvgMove} onMouseLeave={() => setHoverZ(null)} onClick={handleSvgClick} 
-                      className="cursor-crosshair"
-                  >
-                    {/* Ένδειξη Φορτίου q στο Φυσικό Μοντέλο */}
-                    {qLoad > 0 && (
-                      <g transform={`translate(${wCenter/2}, -15)`}>
-                        <rect x="0" y="-10" width={wCenter/2} height="10" fill="#fef3c7" opacity="0.8"/>
-                        <line x1="0" y1="0" x2={wCenter/2} y2="0" stroke="#d97706" strokeWidth="2"/>
-                        {[10, 30, 50, 70].map(x => (
-                          <line key={x} x1={x} y1="-10" x2={x} y2="0" stroke="#d97706" strokeWidth="1.5" markerEnd="url(#arr-q)"/>
-                        ))}
-                        <text x={wCenter/4} y="-15" fontSize="10" fill="#d97706" fontWeight="bold" textAnchor="middle">q={qLoad}kPa</text>
-                      </g>
-                    )}
-
-                    {layers.map((l, i) => {
-                      const nextZ = layers[i+1]?.z || totalH;
-                      if (nextZ <= l.z) return null;
-                      const h = (nextZ - l.z) * 40;
-                      return (
-                        <g key={`soil-${i}`}>
-                          <rect x={wCenter/2} y={l.z * 40} width={wCenter/2} height={h} fill={l.color} opacity="0.3" />
-                          {nextZ > excavationH && (
-                            <rect x="0" y={Math.max(l.z, excavationH) * 40} width={wCenter/2} height={(nextZ - Math.max(l.z, excavationH)) * 40} fill={l.color} opacity="0.3" />
-                          )}
+                    <g transform={`translate(0, 0)`}>
+                      <text x={wWater - 5} y="-15" fontSize="12" fill="#3b82f6" fontWeight="bold" textAnchor="end">u</text>
+                      <line x1={wWater} y1="0" x2={wWater} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {waterForceL.map((seg, i) => (
+                        <g key={`wl-${i}`}>
+                          <polygon points={`${wWater},${seg.zTop*40} ${wWater - seg.valTop*scaleU},${seg.zTop*40} ${wWater - seg.valBot*scaleU},${seg.zBot*40} ${wWater},${seg.zBot*40}`} fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
+                          {displayMode === 'stresses' && renderArrows(seg, wWater, scaleU, "#3b82f6", "arr-water", false)}
+                          {displayMode === 'stresses' && renderLabels(seg, wWater, scaleU, false)}
                         </g>
-                      );
-                    })}
-                    
-                    <line x1="0" y1={excavationH*40} x2={wCenter/2} y2={excavationH*40} stroke="#b45309" strokeWidth="2.5"/>
-                    <line x1={wCenter/2} y1="0" x2={wCenter} y2="0" stroke="#b45309" strokeWidth="2.5"/>
-                    
-                    <rect x={wCenter/2 - 3} y="0" width="6" height={svgH} fill="#475569"/>
-
-                    <line x1={wCenter/2} y1={hwActive*40} x2={wCenter} y2={hwActive*40} stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="4 3"/>
-                    <line x1="0" y1={hwPassive*40} x2={wCenter/2} y2={hwPassive*40} stroke="#0d9488" strokeWidth="2.5" strokeDasharray="4 3"/>
-
-                    {layers.map((l, i) => l.z > 0 && (
-                      <line key={`cl-${i}`} x1="0" y1={l.z*40} x2={wCenter} y2={l.z*40} stroke="#ca8a04" strokeWidth="1" strokeDasharray="2 2" opacity="0.5"/>
-                    ))}
-
-                    {/* Ταμπελάκια μηδενισμού οριζόντιας τάσης (z0) */}
-                    {zeroDepthsR.map(z => (
-                      <g key={`z0-${z}`}>
-                        <rect x={wCenter/2 + 2} y={z*40 - 7} width="35" height="14" rx="3" fill="#f97316" />
-                        <text x={wCenter/2 + 19} y={z*40 + 3} fontSize="9" fill="#fff" fontWeight="bold" textAnchor="middle">z0={z.toFixed(1)}</text>
-                      </g>
-                    ))}
-
-                    {(() => {
-                      let wallLabels = new Set([0, excavationH, hwActive, hwPassive, ...layers.map(l => l.z)]);
-                      let uniqueZ = Array.from(wallLabels).filter(z => z >= 0 && z <= totalH).sort((a,b)=>a-b);
-                      return uniqueZ.map((z, i) => (
-                        <g key={`wlbl-${i}`}>
-                          <rect x={wCenter/2 - 16} y={z*40 - 8} width="32" height="16" rx="4" fill="#1e293b" />
-                          <text x={wCenter/2} y={z*40 + 3} fontSize="9" fill="#f8fafc" fontWeight="bold" textAnchor="middle">{z.toFixed(1)}m</text>
-                        </g>
-                      ));
-                    })()}
-
-                    <g transform={`translate(${wCenter/2}, ${svgH})`}>
-                      <polygon points="0,0 -10,12 10,12" fill="#1e293b" />
-                      <circle cx="0" cy="0" r="4" fill="#ef4444" />
-                      <text x="0" y="26" fontSize="11" fill="#1e293b" fontWeight="bold" textAnchor="middle">Σημείο Ισορροπίας (z={totalH}m)</text>
+                      ))}
+                      {displayMode === 'forces' && renderForcesVisuals(fWL, wWater, "#3b82f6", "arr-water", false)}
                     </g>
 
-                    {/* ΣΥΝΙΣΤΑΜΕΝΕΣ */}
-                    {displayMode === 'resultants' && Fa_total > 0 && (
-                      <g>
-                        <line x1={wCenter/2 + 75} y1={(totalH - yA) * 40} x2={wCenter/2 + 3} y2={(totalH - yA) * 40} stroke="#b91c1c" strokeWidth="3.5" markerEnd="url(#arr-res-act)" />
-                        <text x={wCenter/2 + 82} y={(totalH - yA) * 40 - 6} fontSize="12" fill="#b91c1c" fontWeight="bold">E_a = {Fa_total.toFixed(1)} kN</text>
-                        <text x={wCenter/2 + 82} y={(totalH - yA) * 40 + 10} fontSize="10" fill="#b91c1c">y = {yA.toFixed(2)}m (από πόδα)</text>
-                      </g>
-                    )}
-
-                    {displayMode === 'resultants' && Fp_total > 0 && (
-                      <g>
-                        <line x1={wCenter/2 - 75} y1={(totalH - yP) * 40} x2={wCenter/2 - 3} y2={(totalH - yP) * 40} stroke="#0f766e" strokeWidth="3.5" markerEnd="url(#arr-res-pass)" />
-                        <text x={wCenter/2 - 82} y={(totalH - yP) * 40 - 6} fontSize="12" fill="#0f766e" fontWeight="bold" textAnchor="end">E_p = {Fp_total.toFixed(1)} kN</text>
-                        <text x={wCenter/2 - 82} y={(totalH - yP) * 40 + 10} fontSize="10" fill="#0f766e" textAnchor="end">y = {yP.toFixed(2)}m (από πόδα)</text>
-                      </g>
-                    )}
-                  </g>
-
-                  {/* 3B. ΚΑΤΑΚΟΡΥΦΕΣ ΕΝΕΡΓΕΣ ΤΑΣΕΙΣ (ΔΕΞΙΑ) */}
-                  <g transform={`translate(${wWater + wEarthL + wVertL + wCenter}, 0)`}>
-                    <text x="5" y="-15" fontSize="12" fill="#7c3aed" fontWeight="bold" textAnchor="start">σ'v</text>
-                    <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {segmentsVertR.map((seg, i) => (
-                      <g key={`vr-${i}`}>
-                        <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleSv},${seg.zTop*40} ${seg.valBot*scaleSv},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(124,58,237,0.15)" stroke="#7c3aed" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.2} />
-                        {displayMode === 'stresses' && renderArrows(seg, 0, scaleSv, "#7c3aed", "arr-vert", true)}
-                        {displayMode === 'stresses' && renderLabels(seg, 0, scaleSv, true)}
-                      </g>
-                    ))}
-                  </g>
-
-                  {/* 4. ΕΝΕΡΓΗΤΙΚΕΣ (ΔΕΞΙΑ) */}
-                  <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR}, 0)`}>
-                    <text x="5" y="-15" fontSize="12" fill="#ef4444" fontWeight="bold" textAnchor="start">Οριζόντιες Ενεργές σ'h</text>
-                    <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {segmentsR.map((seg, i) => {
-                      if (displayMode === 'forces' && seg.isNeg) return null; 
-                      return (
-                        <g key={`ar-${i}`}>
-                          <polygon 
-                            points={`0,${seg.zTop*40} ${seg.valTop*scaleSa},${seg.zTop*40} ${seg.valBot*scaleSa},${seg.zBot*40} 0,${seg.zBot*40}`} 
-                            fill={seg.isNeg ? "rgba(148,163,184,0.3)" : "rgba(239,68,68,0.2)"} 
-                            stroke={seg.isNeg ? "#94a3b8" : "#ef4444"} 
-                            strokeWidth="1.5" 
-                            opacity={displayMode === 'stresses' ? 1 : 0.4} 
-                          />
+                    <g transform={`translate(${wWater}, 0)`}>
+                      <text x={wEarthL - 5} y="-15" fontSize="12" fill="#0d9488" fontWeight="bold" textAnchor="end">Οριζόντιες Παθητικές σ'p</text>
+                      <line x1={wEarthL} y1={excavationH*40} x2={wEarthL} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {segmentsL.map((seg, i) => (
+                        <g key={`pl-${i}`}>
+                          <polygon points={`${wEarthL},${seg.zTop*40} ${wEarthL - seg.valTop*scaleSp},${seg.zTop*40} ${wEarthL - seg.valBot*scaleSp},${seg.zBot*40} ${wEarthL},${seg.zBot*40}`} fill="rgba(13,148,136,0.2)" stroke="#0d9488" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
                           {displayMode === 'forces' && !seg.isNeg && Math.min(seg.valTop, seg.valBot) > 0.05 && Math.abs(seg.valTop - seg.valBot) > 0.05 && (
-                            <line x1={Math.min(seg.valTop, seg.valBot)*scaleSa} y1={seg.zTop*40} x2={Math.min(seg.valTop, seg.valBot)*scaleSa} y2={seg.zBot*40} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6"/>
+                            <line x1={wEarthL - Math.min(seg.valTop, seg.valBot)*scaleSp} y1={seg.zTop*40} x2={wEarthL - Math.min(seg.valTop, seg.valBot)*scaleSp} y2={seg.zBot*40} stroke="#0d9488" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6"/>
                           )}
-                          {displayMode === 'stresses' && renderArrows(seg, 0, scaleSa, seg.isNeg ? "#94a3b8" : "#ef4444", seg.isNeg ? "arr-grey" : "arr-act", true)}
-                          {displayMode === 'stresses' && renderLabels(seg, 0, scaleSa, true)}
+                          {displayMode === 'stresses' && renderArrows(seg, wEarthL, scaleSp, "#0d9488", "arr-pass", false)}
+                          {displayMode === 'stresses' && renderLabels(seg, wEarthL, scaleSp, false)}
                         </g>
-                      );
-                    })}
-                    {displayMode === 'forces' && renderForcesVisuals(fAR, 0, "#ef4444", "arr-act", true)}
-                  </g>
+                      ))}
+                      {displayMode === 'forces' && renderForcesVisuals(fPL, wEarthL, "#0d9488", "arr-pass", false)}
+                    </g>
 
-                  {/* 4B. ΦΟΡΤΙΟ q (ΔΕΞΙΑ) */}
-                  <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR}, 0)`}>
-                    <text x="5" y="-15" fontSize="12" fill="#d97706" fontWeight="bold" textAnchor="start">Λόγω q</text>
-                    <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {segmentsQ.map((seg, i) => (
-                      <g key={`q-${i}`}>
-                        <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleQ},${seg.zTop*40} ${seg.valBot*scaleQ},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(245,158,11,0.15)" stroke="#d97706" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
-                        {displayMode === 'stresses' && renderArrows(seg, 0, scaleQ, "#d97706", "arr-q", true)}
-                        {displayMode === 'stresses' && renderLabels(seg, 0, scaleQ, true)}
+                    <g transform={`translate(${wWater + wEarthL}, 0)`}>
+                      <text x={wVertL - 5} y="-15" fontSize="12" fill="#7c3aed" fontWeight="bold" textAnchor="end">σ'v</text>
+                      <line x1={wVertL} y1={excavationH*40} x2={wVertL} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {segmentsVertL.map((seg, i) => (
+                        <g key={`vl-${i}`}>
+                          <polygon points={`${wVertL},${seg.zTop*40} ${wVertL - seg.valTop*scaleSv},${seg.zTop*40} ${wVertL - seg.valBot*scaleSv},${seg.zBot*40} ${wVertL},${seg.zBot*40}`} fill="rgba(124,58,237,0.15)" stroke="#7c3aed" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.2} />
+                          {displayMode === 'stresses' && renderArrows(seg, wVertL, scaleSv, "#7c3aed", "arr-vert", false)}
+                          {displayMode === 'stresses' && renderLabels(seg, wVertL, scaleSv, false)}
+                        </g>
+                      ))}
+                    </g>
+
+                    <g transform={`translate(${wWater + wEarthL + wVertL}, 0)`} 
+                        onMouseMove={handleSvgMove} onMouseLeave={() => setHoverZ(null)} onClick={handleSvgClick} 
+                        className="cursor-crosshair"
+                    >
+                      {qLoad > 0 && (
+                        <g transform={`translate(${wCenter/2}, -15)`}>
+                          <rect x="0" y="-10" width={wCenter/2} height="10" fill="#fef3c7" opacity="0.8"/>
+                          <line x1="0" y1="0" x2={wCenter/2} y2="0" stroke="#d97706" strokeWidth="2"/>
+                          {[10, 30, 50, 70].map(x => (
+                            <line key={x} x1={x} y1="-10" x2={x} y2="0" stroke="#d97706" strokeWidth="1.5" markerEnd="url(#arr-q)"/>
+                          ))}
+                          <text x={wCenter/4} y="-15" fontSize="10" fill="#d97706" fontWeight="bold" textAnchor="middle">q={qLoad}kPa</text>
+                        </g>
+                      )}
+
+                      {layers.map((l, i) => {
+                        const nextZ = layers[i+1]?.z || totalH;
+                        if (nextZ <= l.z) return null;
+                        const h = (nextZ - l.z) * 40;
+                        return (
+                          <g key={`soil-${i}`}>
+                            <rect x={wCenter/2} y={l.z * 40} width={wCenter/2} height={h} fill={l.color} opacity="0.3" />
+                            {nextZ > excavationH && (
+                              <rect x="0" y={Math.max(l.z, excavationH) * 40} width={wCenter/2} height={(nextZ - Math.max(l.z, excavationH)) * 40} fill={l.color} opacity="0.3" />
+                            )}
+                          </g>
+                        );
+                      })}
+                      
+                      <line x1="0" y1={excavationH*40} x2={wCenter/2} y2={excavationH*40} stroke="#b45309" strokeWidth="2.5"/>
+                      <line x1={wCenter/2} y1="0" x2={wCenter} y2="0" stroke="#b45309" strokeWidth="2.5"/>
+                      
+                      <rect x={wCenter/2 - 3} y="0" width="6" height={svgH} fill="#475569"/>
+
+                      <line x1={wCenter/2} y1={hwActive*40} x2={wCenter} y2={hwActive*40} stroke="#3b82f6" strokeWidth="2.5" strokeDasharray="4 3"/>
+                      <line x1="0" y1={hwPassive*40} x2={wCenter/2} y2={hwPassive*40} stroke="#0d9488" strokeWidth="2.5" strokeDasharray="4 3"/>
+
+                      {layers.map((l, i) => l.z > 0 && (
+                        <line key={`cl-${i}`} x1="0" y1={l.z*40} x2={wCenter} y2={l.z*40} stroke="#ca8a04" strokeWidth="1" strokeDasharray="2 2" opacity="0.5"/>
+                      ))}
+
+                      {zeroDepthsR.map(z => (
+                        <g key={`z0-${z}`}>
+                          <rect x={wCenter/2 + 2} y={z*40 - 7} width="35" height="14" rx="3" fill="#f97316" />
+                          <text x={wCenter/2 + 19} y={z*40 + 3} fontSize="9" fill="#fff" fontWeight="bold" textAnchor="middle">z0={z.toFixed(1)}</text>
+                        </g>
+                      ))}
+
+                      {(() => {
+                        let wallLabels = new Set([0, excavationH, hwActive, hwPassive, ...layers.map(l => l.z)]);
+                        let uniqueZ = Array.from(wallLabels).filter(z => z >= 0 && z <= totalH).sort((a,b)=>a-b);
+                        return uniqueZ.map((z, i) => (
+                          <g key={`wlbl-${i}`}>
+                            <rect x={wCenter/2 - 16} y={z*40 - 8} width="32" height="16" rx="4" fill="#1e293b" />
+                            <text x={wCenter/2} y={z*40 + 3} fontSize="9" fill="#f8fafc" fontWeight="bold" textAnchor="middle">{z.toFixed(1)}m</text>
+                          </g>
+                        ));
+                      })()}
+
+                      <g transform={`translate(${wCenter/2}, ${svgH})`}>
+                        <polygon points="0,0 -10,12 10,12" fill="#1e293b" />
+                        <circle cx="0" cy="0" r="4" fill="#ef4444" />
+                        <text x="0" y="26" fontSize="11" fill="#1e293b" fontWeight="bold" textAnchor="middle">Σημείο Ισορροπίας (z={totalH}m)</text>
                       </g>
-                    ))}
-                    {displayMode === 'forces' && renderForcesVisuals(fQ, 0, "#d97706", "arr-q", true)}
-                  </g>
 
-                  {/* 5. ΥΔΡΟΣΤΑΤΙΚΗ ΔΕΞΙΑ (ΑΝΑΝΤΗ) */}
-                  <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wQ}, 0)`}>
-                    <text x="5" y="-15" fontSize="12" fill="#3b82f6" fontWeight="bold" textAnchor="start">u</text>
-                    <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
-                    {waterForceR.map((seg, i) => (
-                      <g key={`wr-${i}`}>
-                        <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleU},${seg.zTop*40} ${seg.valBot*scaleU},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
-                        {displayMode === 'stresses' && renderArrows(seg, 0, scaleU, "#3b82f6", "arr-water", true)}
-                        {displayMode === 'stresses' && renderLabels(seg, 0, scaleU, true)}
-                      </g>
-                    ))}
-                    {displayMode === 'forces' && renderForcesVisuals(fWR, 0, "#3b82f6", "arr-water", true)}
-                  </g>
+                      {displayMode === 'resultants' && Fa_total > 0 && (
+                        <g>
+                          <line x1={wCenter/2 + 75} y1={(totalH - yA) * 40} x2={wCenter/2 + 3} y2={(totalH - yA) * 40} stroke="#b91c1c" strokeWidth="3.5" markerEnd="url(#arr-res-act)" />
+                          <text x={wCenter/2 + 82} y={(totalH - yA) * 40 - 6} fontSize="12" fill="#b91c1c" fontWeight="bold">E_a = {Fa_total.toFixed(1)} kN</text>
+                          <text x={wCenter/2 + 82} y={(totalH - yA) * 40 + 10} fontSize="10" fill="#b91c1c">y = {yA.toFixed(2)}m (από πόδα)</text>
+                        </g>
+                      )}
 
-                </svg>
+                      {displayMode === 'resultants' && Fp_total > 0 && (
+                        <g>
+                          <line x1={wCenter/2 - 75} y1={(totalH - yP) * 40} x2={wCenter/2 - 3} y2={(totalH - yP) * 40} stroke="#0f766e" strokeWidth="3.5" markerEnd="url(#arr-res-pass)" />
+                          <text x={wCenter/2 - 82} y={(totalH - yP) * 40 - 6} fontSize="12" fill="#0f766e" fontWeight="bold" textAnchor="end">E_p = {Fp_total.toFixed(1)} kN</text>
+                          <text x={wCenter/2 - 82} y={(totalH - yP) * 40 + 10} fontSize="10" fill="#0f766e" textAnchor="end">y = {yP.toFixed(2)}m (από πόδα)</text>
+                        </g>
+                      )}
+                    </g>
+
+                    <g transform={`translate(${wWater + wEarthL + wVertL + wCenter}, 0)`}>
+                      <text x="5" y="-15" fontSize="12" fill="#7c3aed" fontWeight="bold" textAnchor="start">σ'v</text>
+                      <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {segmentsVertR.map((seg, i) => (
+                        <g key={`vr-${i}`}>
+                          <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleSv},${seg.zTop*40} ${seg.valBot*scaleSv},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(124,58,237,0.15)" stroke="#7c3aed" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.2} />
+                          {displayMode === 'stresses' && renderArrows(seg, 0, scaleSv, "#7c3aed", "arr-vert", true)}
+                          {displayMode === 'stresses' && renderLabels(seg, 0, scaleSv, true)}
+                        </g>
+                      ))}
+                    </g>
+
+                    <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR}, 0)`}>
+                      <text x="5" y="-15" fontSize="12" fill="#ef4444" fontWeight="bold" textAnchor="start">Οριζόντιες Ενεργές σ'h</text>
+                      <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {segmentsR.map((seg, i) => {
+                        if (displayMode === 'forces' && seg.isNeg) return null; 
+                        return (
+                          <g key={`ar-${i}`}>
+                            <polygon 
+                              points={`0,${seg.zTop*40} ${seg.valTop*scaleSa},${seg.zTop*40} ${seg.valBot*scaleSa},${seg.zBot*40} 0,${seg.zBot*40}`} 
+                              fill={seg.isNeg ? "rgba(148,163,184,0.3)" : "rgba(239,68,68,0.2)"} 
+                              stroke={seg.isNeg ? "#94a3b8" : "#ef4444"} 
+                              strokeWidth="1.5" 
+                              opacity={displayMode === 'stresses' ? 1 : 0.4} 
+                            />
+                            {displayMode === 'forces' && !seg.isNeg && Math.min(seg.valTop, seg.valBot) > 0.05 && Math.abs(seg.valTop - seg.valBot) > 0.05 && (
+                              <line x1={Math.min(seg.valTop, seg.valBot)*scaleSa} y1={seg.zTop*40} x2={Math.min(seg.valTop, seg.valBot)*scaleSa} y2={seg.zBot*40} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.6"/>
+                            )}
+                            {displayMode === 'stresses' && renderArrows(seg, 0, scaleSa, seg.isNeg ? "#94a3b8" : "#ef4444", seg.isNeg ? "arr-grey" : "arr-act", true)}
+                            {displayMode === 'stresses' && renderLabels(seg, 0, scaleSa, true)}
+                          </g>
+                        );
+                      })}
+                      {displayMode === 'forces' && renderForcesVisuals(fAR, 0, "#ef4444", "arr-act", true)}
+                    </g>
+
+                    <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR}, 0)`}>
+                      <text x="5" y="-15" fontSize="12" fill="#d97706" fontWeight="bold" textAnchor="start">Λόγω q</text>
+                      <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {segmentsQ.map((seg, i) => (
+                        <g key={`q-${i}`}>
+                          <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleQ},${seg.zTop*40} ${seg.valBot*scaleQ},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(245,158,11,0.15)" stroke="#d97706" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
+                          {displayMode === 'stresses' && renderArrows(seg, 0, scaleQ, "#d97706", "arr-q", true)}
+                          {displayMode === 'stresses' && renderLabels(seg, 0, scaleQ, true)}
+                        </g>
+                      ))}
+                      {displayMode === 'forces' && renderForcesVisuals(fQ, 0, "#d97706", "arr-q", true)}
+                    </g>
+
+                    <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wQ}, 0)`}>
+                      <text x="5" y="-15" fontSize="12" fill="#3b82f6" fontWeight="bold" textAnchor="start">u</text>
+                      <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                      {waterForceR.map((seg, i) => (
+                        <g key={`wr-${i}`}>
+                          <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleU},${seg.zTop*40} ${seg.valBot*scaleU},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
+                          {displayMode === 'stresses' && renderArrows(seg, 0, scaleU, "#3b82f6", "arr-water", true)}
+                          {displayMode === 'stresses' && renderLabels(seg, 0, scaleU, true)}
+                        </g>
+                      ))}
+                      {displayMode === 'forces' && renderForcesVisuals(fWR, 0, "#3b82f6", "arr-water", true)}
+                    </g>
+
+                  </svg>
+                </div>
               </div>
             </div>
 
