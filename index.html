@@ -5,43 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Υπολογισμός Εδαφικών Ωθήσεων - Π. Πελέκης</title>
   
-  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          animation: {
-            fadeIn: 'fadeIn 0.4s ease-in-out',
-          },
-          keyframes: {
-            fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
-            }
-          }
+          animation: { fadeIn: 'fadeIn 0.4s ease-in-out' },
+          keyframes: { fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } } }
         }
       }
     }
   </script>
 
-  <!-- React & ReactDOM via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  
-  <!-- Babel Standalone (Για να μεταγλωττίσει τον κώδικα React/JSX στον browser) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans selection:bg-blue-100 m-0 p-0">
   
-  <!-- Εδώ θα "φορτώσει" η εφαρμογή -->
   <div id="root"></div>
 
-  <!-- Ο Κώδικας της Εφαρμογής -->
   <script type="text/babel">
     const { useState, useMemo } = React;
 
-    // --- ΒΟΗΘΗΤΙΚΑ COMPONENTS ---
     const Fraction = ({ num, den }) => (
       <span className="inline-flex flex-col items-center justify-center align-middle mx-1 text-sm font-serif">
         <span className="border-b border-slate-700 pb-[1px] px-1">{num}</span>
@@ -150,10 +136,11 @@
       const gridY = []; for(let i = -400; i <= 400 / zoom; i += gridStepY) { if(i !== 0) gridY.push(i); }
 
       const mainF = stateParam < 0 ? tangentPointBottom : tangentPointTop;
+      const midPoleX = isFailing && mainF ? (toX(sigmaH) + toX(mainF.x))/2 : 0;
+      const midPoleY = isFailing && mainF ? (toY(0) + toY(mainF.y))/2 : 0;
 
       return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
-          {/* Modal Απόδειξης Rankine */}
           {showProof && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowProof(false)}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -183,7 +170,7 @@
                     <div className="bg-slate-50 p-4 rounded-lg font-serif space-y-3 text-center">
                       <div>σ<sub>1</sub>·sin(φ) + σ<sub>3</sub>·sin(φ) = σ<sub>1</sub> - σ<sub>3</sub></div>
                       <div>σ<sub>3</sub>·(1 + sin(φ)) = σ<sub>1</sub>·(1 - sin(φ))</div>
-                      <div className="pt-2"><Fraction num={<>σ<sub>1</sub></>} den={<>σ<sub>3</sub></>} /> = <Fraction num="1 + sin(φ)" den="1 - sin(φ)" /> = tan<sup>2</sup><span className="text-lg align-middle">(</span>45° + <Fraction num="φ" den="2" /><span className="text-lg align-middle">)</span></div>
+                      <div className="pt-2"><Fraction num={<>σ<sub>1</sub></>} den={<>σ<sub>3</sub></>} /> = <Fraction num="1 + sin(φ)" den="1 - sin(φ)" /></div>
                     </div>
                   </section>
 
@@ -192,7 +179,8 @@
                       <h3 className="font-bold text-red-600 mb-2">3. Ενεργητική (K<sub>a</sub>)</h3>
                       <p className="text-sm mb-2">σ<sub>3</sub> = σ<sub>h</sub>, σ<sub>1</sub> = σ<sub>v</sub></p>
                       <div className="bg-red-50 p-3 rounded-lg font-serif text-sm mb-3">
-                        <div className="text-center font-bold">K<sub>a</sub> = tan<sup>2</sup>(45° - φ/2)</div>
+                        <div className="text-center font-bold mb-1">K<sub>a</sub> = <Fraction num="1 - sin(φ)" den="1 + sin(φ)" /></div>
+                        <div className="text-center font-bold text-slate-500 text-xs">ή K<sub>a</sub> = tan<sup>2</sup>(45° - φ/2)</div>
                       </div>
                       <div className="bg-white border border-red-100 p-3 rounded-lg font-serif text-sm">
                         <div className="font-semibold text-slate-700 mb-1 text-xs">Χωρίς Συνοχή (c=0):</div>
@@ -205,7 +193,8 @@
                       <h3 className="font-bold text-blue-600 mb-2">4. Παθητική (K<sub>p</sub>)</h3>
                       <p className="text-sm mb-2">σ<sub>1</sub> = σ<sub>h</sub>, σ<sub>3</sub> = σ<sub>v</sub></p>
                       <div className="bg-blue-50 p-3 rounded-lg font-serif text-sm mb-3">
-                        <div className="text-center font-bold">K<sub>p</sub> = tan<sup>2</sup>(45° + φ/2)</div>
+                        <div className="text-center font-bold mb-1">K<sub>p</sub> = <Fraction num="1 + sin(φ)" den="1 - sin(φ)" /></div>
+                        <div className="text-center font-bold text-slate-500 text-xs">ή K<sub>p</sub> = tan<sup>2</sup>(45° + φ/2)</div>
                       </div>
                       <div className="bg-white border border-blue-100 p-3 rounded-lg font-serif text-sm">
                         <div className="font-semibold text-slate-700 mb-1 text-xs">Χωρίς Συνοχή (c=0):</div>
@@ -220,7 +209,6 @@
             </div>
           )}
 
-          {/* ΝΕΟ Modal: Εξήγηση Εύρεσης Πόλου */}
           {showPoleExplanation && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowPoleExplanation(false)}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -230,59 +218,36 @@
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                   </button>
                 </div>
-                
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 text-slate-700 leading-relaxed text-[15px]">
                   <div className="space-y-5">
-                    <p>
-                      Ο <strong>Πόλος (ή Όριο Επιπέδων)</strong> είναι ένα μοναδικό σημείο πάνω στον κύκλο του Mohr. Η ιδιότητά του είναι ότι αν φέρουμε μια ευθεία από τον Πόλο, παράλληλη προς ένα οποιοδήποτε φυσικό επίπεδο μέσα στο έδαφος, η τομή της με τον κύκλο μας δίνει τις τάσεις (σ, τ) που ασκούνται σε αυτό το επίπεδο.
-                    </p>
+                    <p>Ο <strong>Πόλος (ή Όριο Επιπέδων)</strong> είναι ένα μοναδικό σημείο πάνω στον κύκλο του Mohr. Η ιδιότητά του είναι ότι αν φέρουμε μια ευθεία από τον Πόλο, παράλληλη προς ένα οποιοδήποτε φυσικό επίπεδο μέσα στο έδαφος, η τομή της με τον κύκλο μας δίνει τις τάσεις (σ, τ) που ασκούνται σε αυτό το επίπεδο.</p>
                     <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
                       <h3 className="font-bold text-amber-800 mb-2">Βήματα γραφικής εύρεσης:</h3>
                       <ol className="list-decimal pl-5 space-y-2 text-amber-900">
-                        <li>
-                          Γνωρίζουμε ότι η κατακόρυφη τάση <strong>σ<sub>v</sub></strong> ασκείται σε <strong>οριζόντιο επίπεδο</strong>. Άρα, από το σημείο (σ<sub>v</sub>, 0) του κύκλου, φέρνουμε μια οριζόντια γραμμή (παράλληλη στο επίπεδο εφαρμογής της).
-                        </li>
-                        <li>
-                          Αντίστοιχα, η οριζόντια τάση <strong>σ<sub>h</sub></strong> ασκείται σε <strong>κατακόρυφο επίπεδο</strong>. Από το σημείο (σ<sub>h</sub>, 0), φέρνουμε μια κατακόρυφη γραμμή.
-                        </li>
-                        <li>
-                          Το σημείο τομής αυτών των δύο γραμμών πάνω στον κύκλο, είναι ο Πόλος!
-                        </li>
+                        <li>Η κατακόρυφη τάση <strong>σ<sub>v</sub></strong> ασκείται σε <strong>οριζόντιο επίπεδο</strong>. Από το σημείο (σ<sub>v</sub>, 0) φέρνουμε οριζόντια γραμμή.</li>
+                        <li>Η οριζόντια τάση <strong>σ<sub>h</sub></strong> ασκείται σε <strong>κατακόρυφο επίπεδο</strong>. Από το (σ<sub>h</sub>, 0) φέρνουμε κατακόρυφη γραμμή.</li>
+                        <li>Το σημείο τομής αυτών των δύο γραμμών πάνω στον κύκλο, είναι ο Πόλος.</li>
                       </ol>
                     </div>
                     <p className="font-medium text-slate-800 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      <strong>Συμπέρασμα:</strong> Στην περίπτωση των γεωστατικών τάσεων, η τομή γίνεται ακριβώς πάνω στο σημείο (σ<sub>h</sub>, 0). Επομένως, <u>ο Πόλος συμπίπτει πάντα με την οριζόντια τάση (σ<sub>h</sub>)</u>.
+                      <strong>Συμπέρασμα:</strong> Στις γεωστατικές τάσεις, η τομή γίνεται πάνω στον άξονα στο (σ<sub>h</sub>, 0). <u>Άρα ο Πόλος συμπίπτει με την οριζόντια τάση σ<sub>h</sub></u>.
                     </p>
                   </div>
-
                   <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-200 p-4">
                     <svg viewBox="0 0 400 300" className="w-full max-w-sm h-auto bg-white rounded-lg shadow-sm border border-slate-100">
-                      {/* Άξονες */}
                       <line x1="20" y1="150" x2="380" y2="150" stroke="#94a3b8" strokeWidth="1.5" />
                       <text x="365" y="140" fontSize="12" fill="#64748b" fontStyle="italic">σ (kPa)</text>
                       <line x1="60" y1="20" x2="60" y2="280" stroke="#94a3b8" strokeWidth="1.5" />
                       <text x="40" y="35" fontSize="12" fill="#64748b" fontStyle="italic">τ</text>
-
-                      {/* Κύκλος Mohr */}
                       <circle cx="220" cy="150" r="100" fill="rgba(59, 130, 246, 0.05)" stroke="#3b82f6" strokeWidth="2" />
-
-                      {/* Γραμμή από σv (Οριζόντια) */}
                       <line x1="320" y1="150" x2="120" y2="150" stroke="#f59e0b" strokeWidth="4" strokeDasharray="6 4" opacity="0.6" />
                       <text x="220" y="165" fontSize="10" fill="#d97706" textAnchor="middle" fontWeight="bold">Γραμμή Οριζόντιου Επιπέδου</text>
-
-                      {/* Γραμμή από σh (Κατακόρυφη) */}
                       <line x1="120" y1="30" x2="120" y2="270" stroke="#ef4444" strokeWidth="2" strokeDasharray="6 4" />
                       <text x="125" y="45" fontSize="10" fill="#ef4444" fontWeight="bold">Γραμμή Κατακόρυφου Επιπέδου</text>
-
-                      {/* Σημείο σv */}
                       <circle cx="320" cy="150" r="5" fill="#1e293b" />
                       <text x="320" y="135" fontSize="14" fill="#1e293b" textAnchor="middle" fontWeight="bold">σ<tspan baselineShift="sub" fontSize="10">v</tspan></text>
-
-                      {/* Σημείο σh / Πόλος */}
                       <circle cx="120" cy="150" r="5" fill="#3b82f6" />
                       <text x="120" y="185" fontSize="14" fill="#3b82f6" textAnchor="middle" fontWeight="bold">σ<tspan baselineShift="sub" fontSize="10">h</tspan></text>
-                      
-                      {/* Highlight Intersection (Pole) */}
                       <circle cx="120" cy="150" r="8" fill="none" stroke="#d97706" strokeWidth="3" />
                       <path d="M 80 110 L 110 140" stroke="#d97706" strokeWidth="2" markerEnd="url(#arrow-w)" />
                       <text x="75" y="105" fontSize="14" fill="#d97706" fontWeight="bold" textAnchor="middle">Πόλος (P)</text>
@@ -293,7 +258,6 @@
             </div>
           )}
 
-          {/* ΣΤΗΛΗ 1: Παράμετροι & Ελέγχοι (Desktop: Αριστερά) */}
           <div className="lg:col-span-3 flex flex-col gap-6">
             <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-5">
               <h3 className="text-sm font-bold text-slate-800 border-b pb-2">Παράμετροι</h3>
@@ -344,7 +308,6 @@
             </div>
           </div>
 
-          {/* ΣΤΗΛΗ 2: Κύκλος Mohr (Desktop: Κέντρο) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center h-full">
               <h2 className="text-lg font-bold text-slate-700 mb-4">Επίπεδο Mohr (σ, τ)</h2>
@@ -364,9 +327,11 @@
                   <line x1={toX(-c / Math.tan(phiRad))} y1={toY(0)} x2={toX(1000 / zoom)} y2={toY(c + (1000 / zoom) * Math.tan(phiRad))} stroke="#ef4444" strokeWidth="2" />
                   <line x1={toX(-c / Math.tan(phiRad))} y1={toY(0)} x2={toX(1000 / zoom)} y2={toY(-(c + (1000 / zoom) * Math.tan(phiRad)))} stroke="#ef4444" strokeWidth="2" strokeDasharray="4 4"/>
                   
+                  {/* Κείμενο Κριτηρίου Αστοχίας */}
+                  <text transform={`rotate(${-phi}, ${toX(0)}, ${toY(c)})`} x={toX(120)} y={toY(c) - 8} fill="#ef4444" fontSize="12" fontWeight="bold">Κριτήριο Αστοχίας τ = c + σ·tan(φ)</text>
+
                   <circle cx={toX(center)} cy={toY(0)} r={radius * zoom} fill="rgba(59, 130, 246, 0.05)" stroke={isFailing ? "#ef4444" : "#3b82f6"} strokeWidth="2.5" />
 
-                  {/* Κέντρο του Κύκλου */}
                   <circle cx={toX(center)} cy={toY(0)} r="3" fill="#64748b" />
                   <text x={toX(center)} y={toY(0) - 10} fill="#64748b" fontSize="12" textAnchor="middle" fontWeight="bold">C</text>
 
@@ -381,7 +346,6 @@
 
                   {isFailing && tangentPointTop && (
                     <g>
-                      {/* Γραμμές από το σημείο αστοχίας προς τις κύριες τάσεις */}
                       <line x1={toX(tangentPointTop.x)} y1={toY(tangentPointTop.y)} x2={toX(sigmaV)} y2={toY(0)} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
                       <line x1={toX(tangentPointTop.x)} y1={toY(tangentPointTop.y)} x2={toX(sigmaH)} y2={toY(0)} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
                       
@@ -389,6 +353,10 @@
                       <circle cx={toX(tangentPointBottom.x)} cy={toY(tangentPointBottom.y)} r="4" fill="#ef4444" />
                       
                       <line x1={toX(sigmaH)} y1={toY(0)} x2={toX(mainF.x)} y2={toY(mainF.y)} stroke="#f59e0b" strokeWidth="3" />
+                      
+                      {/* Κείμενο 2 γραμμών δίπλα από την πορτοκαλί γραμμή */}
+                      <text x={midPoleX} y={midPoleY - 15} fontSize="10" fill="#d97706" fontWeight="bold" textAnchor={stateParam < 0 ? "start" : "end"}>Παράλληλη με το</text>
+                      <text x={midPoleX} y={midPoleY - 3} fontSize="10" fill="#d97706" fontWeight="bold" textAnchor={stateParam < 0 ? "start" : "end"}>επίπεδο αστοχίας</text>
                       
                       {stateParam < 0 ? (
                         <g>
@@ -412,7 +380,6 @@
             </div>
           </div>
 
-          {/* ΣΤΗΛΗ 3: Φυσικό Μοντέλο (Desktop: Δεξιά) */}
           <div className="lg:col-span-4 flex flex-col gap-6">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
               <h2 className="text-lg font-bold text-slate-700 mb-4">Φυσικό Μοντέλο</h2>
@@ -435,9 +402,14 @@
                       <path d={`M${200 - stateParam * 10},90 L${200 - stateParam * 10},20 L${200 - stateParam * 10 - 70 / Math.tan((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)},20 Z`} fill="#f59e0b" opacity="0.15" />
                       
                       <path d={`M ${200 - stateParam * 10 - 25} 90 A 25 25 0 0 1 ${200 - stateParam * 10 - 25 * Math.cos((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)} ${90 - 25 * Math.sin((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)}`} fill="none" stroke="#f59e0b" strokeWidth="2" />
-                      <text x={200 - stateParam * 10 - 48 * Math.cos((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180 / 2)} y={90 - 48 * Math.sin((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180 / 2)} fill="#1e293b" fontSize="8" textAnchor="middle">
-                        <tspan x={200 - stateParam * 10 - 48 * Math.cos((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180 / 2)} dy="-5">θ = 45° {stateParam < 0 ? '+' : '-'} φ/2</tspan>
+                      
+                      {/* Αλλαγή θέσης του θ και προσθήκη βέλους για Επίπεδο Αστοχίας */}
+                      <text x={200 - stateParam * 10 - 40 * Math.cos((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180 / 2)} y={105} fill="#1e293b" fontSize="8" textAnchor="middle" fontWeight="bold">
+                        <tspan>θ = 45° {stateParam < 0 ? '+' : '-'} φ/2</tspan>
                       </text>
+                      
+                      <path d={`M${200 - stateParam * 10 - 45},30 L${200 - stateParam * 10 - 15 - 35/Math.tan((stateParam < 0 ? activeAngle : passiveAngle) * Math.PI/180)},55`} stroke="#1e293b" strokeWidth="1" markerEnd="url(#arrowHead)" opacity="0.7"/>
+                      <text x={200 - stateParam * 10 - 50} y={25} fontSize="8" fill="#1e293b" fontWeight="bold" textAnchor="middle">Επίπεδο Αστοχίας</text>
                     </g>
                   )}
                 </svg>
@@ -469,7 +441,6 @@
         const phiR = toRad(phi), deltaR = toRad(delta), omegaR = toRad(omega), betaR = toRad(beta);
         const alphaR = toRad(omega + 90); 
         
-        // Ενεργητική
         const numA = Math.pow(Math.sin(alphaR + phiR), 2);
         const termA1 = Math.pow(Math.sin(alphaR), 2) * Math.sin(alphaR - deltaR);
         let termA2 = 0;
@@ -477,7 +448,6 @@
         if (innerRootA >= 0) termA2 = Math.pow(1 + Math.sqrt(innerRootA), 2);
         const Ka = termA2 > 0 ? numA / (termA1 * termA2) : NaN;
 
-        // Παθητική
         const numP = Math.pow(Math.sin(alphaR - phiR), 2);
         const termP1 = Math.pow(Math.sin(alphaR), 2) * Math.sin(alphaR + deltaR);
         let termP2 = 0;
@@ -522,7 +492,6 @@
 
       return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
-          {/* Modal Απόδειξης Coulomb */}
           {showProof && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowProof(false)}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -582,7 +551,6 @@
             </div>
           )}
 
-          {/* ΣΤΗΛΗ 1: Παράμετροι & Επιλογή (Desktop Layout 3-col) */}
           <div className="lg:col-span-3 flex flex-col gap-6">
             <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex flex-col xl:flex-row gap-2">
               <button onClick={() => setCoulombState('active')} className={`flex-1 py-3 px-2 rounded-lg font-bold text-[13px] transition-colors ${isActive ? 'bg-red-50 text-red-700 border border-red-100' : 'text-slate-500 hover:bg-slate-50'}`}>Ενεργητική</button>
@@ -601,7 +569,8 @@
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700">Κλίση Τοίχου, ω ({omega}°)</label>
-                <input type="range" min="0" max="20" value={omega} onChange={(e) => setOmega(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg accent-slate-600"/>
+                {/* ΝΕΟ: Ω παίρνει και αρνητικές τιμές */}
+                <input type="range" min="-20" max="20" value={omega} onChange={(e) => setOmega(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg accent-slate-600"/>
               </div>
               <div className="space-y-2">
                 <label className="block text-sm font-semibold text-slate-700">Κλίση Επιχώματος, β ({beta}°)</label>
@@ -624,7 +593,6 @@
             </button>
           </div>
 
-          {/* ΔΕΞΙΑ ΣΤΗΛΗ: Σχήμα & Εξισώσεις (Desktop Layout 9-col) */}
           <div className="lg:col-span-9 flex flex-col gap-6">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
               <h2 className="text-lg font-bold text-slate-700 mb-4">Θεωρία Σφήνας Coulomb - {isActive ? 'Ενεργητική' : 'Παθητική'} Κατάσταση</h2>
@@ -636,27 +604,13 @@
                     <marker id="arrowMove" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
                   </defs>
 
-                  {/* Γραμμή Βάσης (Οριζόντια) */}
                   <line x1="20" y1={by} x2={svgW - 20} y2={by} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="5 5" />
-
-                  {/* Υπόλοιπο Έδαφος */}
                   <polygon points={`${fx},${fy} ${svgW},${ty - (svgW-tx)*Math.tan(calculations.betaR)} ${svgW},${by} ${bx},${by}`} fill="#fef08a" opacity="0.4" />
-
-                  {/* Σφήνα Αστοχίας */}
                   <polygon points={`${bx},${by} ${tx},${ty} ${fx},${fy}`} fill="#fde047" opacity="0.8" stroke="#ca8a04" strokeWidth="1" />
-
-                  {/* Γραμμή Επιχώματος β (εκτεταμένη) */}
                   <line x1={tx} y1={ty} x2={svgW} y2={ty - (svgW - tx) * Math.tan(calculations.betaR)} stroke="#b45309" strokeWidth="2" />
-
-                  {/* Επίπεδο Αστοχίας (Διακεκομμένη Γραμμή) */}
                   <line x1={bx} y1={by} x2={fx} y2={fy} stroke={isActive ? "#ef4444" : "#3b82f6"} strokeWidth="2.5" strokeDasharray="5 5" />
-
-                  {/* Τοίχος */}
                   <polygon points={`${bx},${by} ${tx},${ty} ${tx-40},${ty} ${bx-40},${by}`} fill="#64748b" stroke="#334155" strokeWidth="1" />
 
-                  {/* --- ΣΗΜΑΝΣΕΙΣ ΚΑΙ ΓΩΝΙΕΣ --- */}
-
-                  {/* Direction of Wall Movement */}
                   <g transform={`translate(${tx - 30}, ${ty - 25})`}>
                     <text x="0" y="-14" fontSize="11" fontWeight="bold" fill="#475569" textAnchor="middle">Direction of</text>
                     <text x="0" y="-2" fontSize="11" fontWeight="bold" fill="#475569" textAnchor="middle">Wall Movement</text>
@@ -667,48 +621,36 @@
                     )}
                   </g>
 
-                  {/* Γωνία Τοίχου ω */}
                   <line x1={tx} y1={ty} x2={tx} y2={ty + 60} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 4" />
-                  <path d={`M ${tx} ${ty + 40} A 40 40 0 0 0 ${tx + 40 * Math.sin(omegaR)} ${ty + 40 * Math.cos(omegaR)}`} fill="none" stroke="#334155" strokeWidth="1.5" />
-                  <text x={tx + 15} y={ty + 50} fontSize="12" fill="#334155" fontWeight="bold">ω</text>
+                  <path d={`M ${tx} ${ty + 40} A 40 40 0 0 ${omegaR < 0 ? 1 : 0} ${tx + 40 * Math.sin(omegaR)} ${ty + 40 * Math.cos(omegaR)}`} fill="none" stroke="#334155" strokeWidth="1.5" />
+                  <text x={tx + (omegaR < 0 ? -15 : 15)} y={ty + 50} fontSize="12" fill="#334155" fontWeight="bold">ω</text>
 
-                  {/* Γωνία Επιχώματος β */}
                   <line x1={tx} y1={ty} x2={tx + 70} y2={ty} stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 4" />
                   <path d={`M ${tx + 50} ${ty} A 50 50 0 0 ${beta > 0 ? 0 : 1} ${tx + 50 * Math.cos(calculations.betaR)} ${ty - 50 * Math.sin(calculations.betaR)}`} fill="none" stroke="#b45309" strokeWidth="1.5" />
                   <text x={tx + 60} y={ty - 15 * (beta >= 0 ? 1 : -1)} fontSize="12" fill="#b45309" fontWeight="bold">β</text>
 
-                  {/* Γωνία Αστοχίας α_a / α_p */}
                   <path d={`M ${bx + 40} ${by} A 40 40 0 0 0 ${bx + 40 * Math.cos(rhoVisRad)} ${by - 40 * Math.sin(rhoVisRad)}`} fill="none" stroke={isActive ? "#ef4444" : "#3b82f6"} strokeWidth="1.5" />
                   <text x={bx + 50} y={by - 15} fontSize="12" fill={isActive ? "#ef4444" : "#3b82f6"} fontWeight="bold">α<tspan baselineShift="sub" fontSize="9">{isActive ? 'a' : 'p'}</tspan></text>
 
-                  {/* Βάρος W */}
                   <line x1={wx} y1={wy - 40} x2={wx} y2={wy + 40} stroke="#1e293b" strokeWidth="2.5" markerEnd="url(#arrowHead)" />
                   <text x={wx + 15} y={wy + 15} fontSize="18" fill="#1e293b" fontWeight="bold">W</text>
 
-                  {/* --- ΛΕΠΤΟΜΕΡΕΙΕΣ ΣΤΟ ΣΗΜΕΙΟ ΕΦΑΡΜΟΓΗΣ P (px, py) --- */}
                   <g>
-                    {/* Οριζόντια διακεκομμένη αριστερά */}
                     <line x1={px} y1={py} x2={px - 100} y2={py} stroke="#94a3b8" strokeWidth="1.2" strokeDasharray="3 3" />
-                    
-                    {/* Κάθετος (Normal) γραμμή αριστερά */}
                     <line x1={px} y1={py} x2={px - 80 * Math.cos(omegaR)} y2={py + 80 * Math.sin(omegaR)} stroke="#94a3b8" strokeWidth="1.2" strokeDasharray="3 3" />
                     
-                    {/* Τόξο Γωνίας ω */}
-                    <path d={`M ${px - 50} ${py} A 50 50 0 0 0 ${px - 50 * Math.cos(omegaR)} ${py + 50 * Math.sin(omegaR)}`} fill="none" stroke="#64748b" strokeWidth="1.2" />
-                    <text x={px - 55} y={py + 20} fontSize="10" fill="#64748b" fontWeight="bold">ω</text>
+                    <path d={`M ${px - 50} ${py} A 50 50 0 0 ${omegaR < 0 ? 1 : 0} ${px - 50 * Math.cos(omegaR)} ${py + 50 * Math.sin(omegaR)}`} fill="none" stroke="#64748b" strokeWidth="1.2" />
+                    <text x={px - 55} y={py + (omegaR < 0 ? -15 : 20)} fontSize="10" fill="#64748b" fontWeight="bold">ω</text>
 
-                    {/* Τόξο Γωνίας τριβής δ */}
                     <path 
                       d={`M ${px - 65 * Math.cos(omegaR)} ${py + 65 * Math.sin(omegaR)} A 65 65 0 0 ${isActive ? 0 : 1} ${px - 65 * Math.cos(pAngleLeft)} ${py + 65 * Math.sin(pAngleLeft)}`} 
                       fill="none" stroke="#1e293b" strokeWidth="1.2" 
                     />
                     <text x={px - 75 * Math.cos(omegaR + (isActive?1:-1)*calculations.deltaR/2)} y={py + 75 * Math.sin(omegaR + (isActive?1:-1)*calculations.deltaR/2) + 4} fontSize="11" fill="#1e293b" fontWeight="bold">δ</text>
 
-                    {/* Τόξο Συνολικής Γωνίας */}
                     <path d={`M ${px - 85} ${py} A 85 85 0 0 ${pAngleLeft >= 0 ? 0 : 1} ${px - 85 * Math.cos(pAngleLeft)} ${py + 85 * Math.sin(pAngleLeft)}`} fill="none" stroke={isActive ? "#ef4444" : "#3b82f6"} strokeWidth="1" strokeDasharray="2 2" />
                     <text x={px - 90} y={py + (isActive ? 40 : -15)} fontSize="10" fill={isActive ? "#ef4444" : "#3b82f6"} fontWeight="bold">{isActive ? 'ω+δ' : 'ω-δ'}</text>
 
-                    {/* Διάνυσμα Ώθησης P (Αντιστροφή 180° ΜΟΝΟ στην Ενεργητική) */}
                     <line 
                       x1={isActive ? px : pStartX} 
                       y1={isActive ? py : pStartY} 
@@ -723,7 +665,6 @@
               </div>
             </div>
 
-            {/* Εξισώσεις Κεντραρισμένες με ω */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 font-serif overflow-x-auto text-sm md:text-base flex flex-col items-center">
               <h3 className="font-bold font-sans text-slate-800 mb-6 text-center w-full border-b border-slate-100 pb-2">Εξίσωση {isActive ? 'Ενεργητικής' : 'Παθητικής'} Ώθησης Coulomb</h3>
               
@@ -771,7 +712,6 @@
     };
 
     // --- TAB 3: PRESSURE DISTRIBUTIONS (NEW CAD INTERFACE) ---
-    // Χρωματική Παλέτα Εδαφών
     const SOIL_COLORS = ['#fef08a', '#fed7aa', '#d9f99d', '#bae6fd', '#e9d5ff', '#fecdd3'];
 
     const EarthPressureTab = () => {
@@ -779,6 +719,7 @@
       const [excavationH, setExcavationH] = useState(6);
       const [hwActive, setHwActive] = useState(5);
       const [hwPassive, setHwPassive] = useState(7);
+      const [qLoad, setQLoad] = useState(0); // ΝΕΟ: Εξωτερικό φορτίο q
       const [displayMode, setDisplayMode] = useState('stresses'); 
 
       const [layers, setLayers] = useState([
@@ -815,7 +756,7 @@
         const rect = e.currentTarget.getBoundingClientRect();
         const y = e.clientY - rect.top;
         const z = (y / rect.height) * totalH;
-        setHoverZ(Math.round(z * 2) / 2);
+        setHoverZ(Math.round(z * 2) / 2); // Snapping στο 0.5m
       };
 
       const handleSvgClick = () => {
@@ -835,8 +776,10 @@
         let zPointsL = Array.from(zPointsSetL).filter(z => z >= excavationH && z <= totalH).sort((a, b) => a - b);
 
         let segmentsR = [], segmentsL = [];
+        let segmentsQ = []; // ΝΕΟ: Κατανομή λόγω q
         let segmentsVertR = [], segmentsVertL = []; 
         let svR = 0;
+        let zeroDepthsR = []; // ΝΕΟ: Βάθη όπου η οριζόντια τάση γίνεται μηδέν
 
         for (let i = 0; i < zPointsR.length - 1; i++) {
           let zTop = zPointsR[i];
@@ -860,15 +803,23 @@
           segmentsVertR.push({ zTop, zBot, valTop: effTopR, valBot: effBotR, isNeg: false });
 
           let Ka = Math.pow(Math.tan((45 - layer.phi / 2) * Math.PI / 180), 2);
+          
+          // Φορτίο q
+          if (qLoad > 0) {
+            segmentsQ.push({ zTop, zBot, valTop: qLoad * Ka, valBot: qLoad * Ka, isNeg: false });
+          }
+
           let saTop = effTopR * Ka - 2 * layer.c * Math.sqrt(Ka);
           let saBot = effBotR * Ka - 2 * layer.c * Math.sqrt(Ka);
 
           if (saTop < 0 && saBot > 0) {
             let zZero = zTop + (0 - saTop) / (saBot - saTop) * dz;
+            zeroDepthsR.push(zZero); // Αποθήκευση σημείου μηδενισμού
             segmentsR.push({ zTop, zBot: zZero, valTop: saTop, valBot: 0, isNeg: true });
             segmentsR.push({ zTop: zZero, zBot, valTop: 0, valBot: saBot, isNeg: false });
           } else if (saTop > 0 && saBot < 0) {
             let zZero = zTop + (0 - saTop) / (saBot - saTop) * dz;
+            zeroDepthsR.push(zZero); // Αποθήκευση σημείου μηδενισμού
             segmentsR.push({ zTop, zBot: zZero, valTop: saTop, valBot: 0, isNeg: false });
             segmentsR.push({ zTop: zZero, zBot, valTop: 0, valBot: saBot, isNeg: true });
           } else {
@@ -905,11 +856,12 @@
           segmentsL.push({ zTop, zBot, valTop: spTop, valBot: spBot, isNeg: false });
         }
 
-        let maxSa = 1, maxSp = 1, maxSv = 1;
+        let maxSa = 1, maxSp = 1, maxSv = 1, maxQ = 1;
         segmentsR.forEach(s => maxSa = Math.max(maxSa, Math.abs(s.valTop), Math.abs(s.valBot)));
         segmentsL.forEach(s => maxSp = Math.max(maxSp, Math.abs(s.valTop), Math.abs(s.valBot)));
         segmentsVertR.forEach(s => maxSv = Math.max(maxSv, s.valTop, s.valBot));
         segmentsVertL.forEach(s => maxSv = Math.max(maxSv, s.valTop, s.valBot));
+        segmentsQ.forEach(s => maxQ = Math.max(maxQ, s.valTop, s.valBot));
         let maxUw = Math.max((totalH - hwActive) * 10, (totalH - hwPassive) * 10, 1);
 
         const waterForceL = hwPassive < totalH ? [{ zTop: hwPassive, zBot: totalH, valTop: 0, valBot: (totalH - hwPassive) * 10 }] : [];
@@ -942,22 +894,25 @@
         let globalId = 1;
         const fWL = buildForcesArray(waterForceL, 'Υδροστατική (Αρ)').map(f => ({ ...f, id: globalId++ }));
         const fPL = buildForcesArray(segmentsL, 'Παθητική σ\'p').map(f => ({ ...f, id: globalId++ }));
-        const fAR = buildForcesArray(segmentsR, 'Ενεργητική σ\'a').map(f => ({ ...f, id: globalId++ }));
+        const fAR = buildForcesArray(segmentsR, 'Ενεργητική σ\'h').map(f => ({ ...f, id: globalId++ }));
+        const fQ  = buildForcesArray(segmentsQ, 'Φορτίο q').map(f => ({ ...f, id: globalId++ }));
         const fWR = buildForcesArray(waterForceR, 'Υδροστατική (Δε)').map(f => ({ ...f, id: globalId++ }));
 
-        return { segmentsR, segmentsL, segmentsVertR, segmentsVertL, waterForceR, waterForceL, maxSa, maxSp, maxSv, maxUw, fWL, fPL, fAR, fWR };
-      }, [excavationH, hwActive, hwPassive, layers, totalH]);
+        return { segmentsR, segmentsL, segmentsVertR, segmentsVertL, segmentsQ, zeroDepthsR, waterForceR, waterForceL, maxSa, maxSp, maxSv, maxUw, maxQ, fWL, fPL, fAR, fQ, fWR };
+      }, [excavationH, hwActive, hwPassive, layers, totalH, qLoad]);
 
-      const { segmentsR, segmentsL, segmentsVertR, segmentsVertL, waterForceR, waterForceL, maxSa, maxSp, maxSv, maxUw, fWL, fPL, fAR, fWR } = calculations;
+      const { segmentsR, segmentsL, segmentsVertR, segmentsVertL, segmentsQ, zeroDepthsR, waterForceR, waterForceL, maxSa, maxSp, maxSv, maxUw, maxQ, fWL, fPL, fAR, fQ, fWR } = calculations;
 
       const svgH = totalH * 40;
-      const wWater = 90, wEarthL = 130, wVertL = 110, wCenter = 160, wVertR = 110, wEarthR = 130; 
-      const totalSvgW = wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wWater;
+      // Προσαρμογή Πλατών: Προσθήκη wQ (100) για την κατανομή του φορτίου
+      const wWater = 90, wEarthL = 130, wVertL = 110, wCenter = 160, wVertR = 110, wEarthR = 130, wQ = 100; 
+      const totalSvgW = wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wQ + wWater;
       
       const scaleU = (wWater - 25) / maxUw;
       const scaleSp = (wEarthL - 35) / maxSp;
       const scaleSv = (wVertL - 35) / maxSv;
       const scaleSa = (wEarthR - 35) / maxSa;
+      const scaleQ = maxQ > 0 ? (wQ - 35) / maxQ : 1;
 
       const renderForcesVisuals = (forcesArray, axisX, color, markerId, isRightSide) => {
         return forcesArray.map((f) => {
@@ -1040,8 +995,8 @@
       const calcMoment = (forcesArray) => forcesArray.reduce((acc, f) => acc + (f.F * f.leverArm), 0);
       const calcForce = (forcesArray) => forcesArray.reduce((acc, f) => acc + f.F, 0);
       
-      const Fa_total = calcForce(fAR) + calcForce(fWR);
-      const MA_total = calcMoment(fAR) + calcMoment(fWR);
+      const Fa_total = calcForce(fAR) + calcForce(fWR) + calcForce(fQ);
+      const MA_total = calcMoment(fAR) + calcMoment(fWR) + calcMoment(fQ);
       const yA = Fa_total > 0 ? MA_total / Fa_total : 0;
 
       const Fp_total = calcForce(fPL) + calcForce(fWL);
@@ -1049,40 +1004,51 @@
       const yP = Fp_total > 0 ? MP_total / Fp_total : 0;
 
       const FS_overturning = MA_total > 0 ? (MP_total / MA_total) : Infinity;
-      const allForcesCombined = [...fAR, ...fWR, ...fPL, ...fWL].sort((a,b) => a.id - b.id);
+      const allForcesCombined = [...fAR, ...fWR, ...fPL, ...fWL, ...fQ].sort((a,b) => a.id - b.id);
 
       return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn relative">
           
-          {/* --- ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ: COMPACT SIDEBAR --- */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
-            
+          {/* ΣΤΑΘΕΡΟ ΠΕΔΙΟ ΒΑΘΟΥΣ CURSOR */}
+          <div className="absolute -top-12 right-0 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md z-10 flex items-center gap-2">
+            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+            Βάθος (z): {hoverZ !== null ? <span className="text-amber-400">{hoverZ.toFixed(1)} m</span> : <span className="text-slate-400">-</span>}
+          </div>
+
+          {/* Μειωμένο Πλάτος Sidebar (lg:col-span-2 αντί για 3) */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-sm">
               <h3 className="font-bold text-slate-800 border-b pb-2 mb-3">Γενικά Στοιχεία</h3>
               <div className="space-y-3">
                 <div className="space-y-1">
                   <div className="flex justify-between font-bold text-slate-800 text-xs">
-                    <span>Συνολικό Βάθος Τοίχου</span><span>{totalH}m</span>
+                    <span>Συνολικό Βάθος</span><span>{totalH}m</span>
                   </div>
                   <input type="range" min="2" max="20" step="0.5" value={totalH} onChange={handleTotalHChange} className="w-full h-1.5 bg-slate-300 rounded-lg accent-slate-800"/>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between font-bold text-slate-700 text-xs">
-                    <span>Στάθμη Εκσκαφής</span><span>{excavationH}m</span>
+                    <span>Εκσκαφή</span><span>{excavationH}m</span>
                   </div>
                   <input type="range" min="0" max={totalH} step="0.5" value={excavationH} onChange={(e) => setExcavationH(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg accent-slate-700"/>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between font-bold text-blue-700 text-xs">
-                    <span>Σ.Υ.Ν. Δεξιά (Ανάντη)</span><span>{hwActive}m</span>
+                    <span>Νερό Δεξιά</span><span>{hwActive}m</span>
                   </div>
                   <input type="range" min="0" max={totalH} step="0.5" value={hwActive} onChange={(e) => setHwActive(parseFloat(e.target.value))} className="w-full h-1.5 bg-blue-100 rounded-lg accent-blue-600"/>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between font-bold text-teal-700 text-xs">
-                    <span>Σ.Υ.Ν. Αριστερά (Κατάντη)</span><span>{hwPassive}m</span>
+                    <span>Νερό Αριστερά</span><span>{hwPassive}m</span>
                   </div>
                   <input type="range" min={0} max={totalH} step="0.5" value={hwPassive} onChange={(e) => setHwPassive(parseFloat(e.target.value))} className="w-full h-1.5 bg-teal-100 rounded-lg accent-teal-600"/>
+                </div>
+                <div className="space-y-1 border-t pt-2 border-slate-100">
+                  <div className="flex justify-between font-bold text-amber-700 text-xs">
+                    <span>Φορτίο Επιφ. q</span><span>{qLoad} kPa</span>
+                  </div>
+                  <input type="range" min="0" max="100" step="5" value={qLoad} onChange={(e) => setQLoad(parseFloat(e.target.value))} className="w-full h-1.5 bg-amber-100 rounded-lg accent-amber-600"/>
                 </div>
               </div>
             </div>
@@ -1091,7 +1057,6 @@
               <h3 className="font-bold text-slate-800 border-b pb-2 mb-2 flex justify-between items-center text-sm">
                 <span>Στρωματογραφία</span>
               </h3>
-              <p className="text-[10px] text-slate-500 mb-3 italic">Κάντε κλικ στην κεντρική τομή για προσθήκη στρώσης.</p>
               
               <div className="flex-1 overflow-y-auto pr-1 space-y-2">
                 {layers.map((layer, index) => {
@@ -1101,31 +1066,31 @@
                   return (
                     <div key={layer.id} className="p-2 bg-slate-50 border border-slate-200 rounded-lg border-l-4" style={{borderLeftColor: layer.color}}>
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-xs text-slate-700">Στρώση {index + 1} (από {layer.z}m)</span>
+                        <span className="font-bold text-[11px] text-slate-700">Στρ. {index + 1} ({layer.z}m)</span>
                         {index > 0 && (
                           <button onClick={() => deleteLayer(layer.id)} className="text-red-500 hover:text-red-700 font-bold text-[10px] px-1">X</button>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                      <div className="grid grid-cols-1 gap-y-1 text-[10px]">
                         <div className="flex justify-between items-center">
                           <label className="text-slate-600">c (kPa):</label>
-                          <input type="number" value={layer.c} onChange={(e) => updateLayer(layer.id, 'c', e.target.value)} className="w-12 text-right border rounded px-1 py-0.5" />
+                          <input type="number" value={layer.c} onChange={(e) => updateLayer(layer.id, 'c', e.target.value)} className="w-10 text-right border rounded px-1 py-0.5" />
                         </div>
                         <div className="flex justify-between items-center">
                           <label className="text-slate-600">φ (°):</label>
-                          <input type="number" value={layer.phi} onChange={(e) => updateLayer(layer.id, 'phi', e.target.value)} className="w-12 text-right border rounded px-1 py-0.5" />
+                          <input type="number" value={layer.phi} onChange={(e) => updateLayer(layer.id, 'phi', e.target.value)} className="w-10 text-right border rounded px-1 py-0.5" />
                         </div>
                         <div className="flex justify-between items-center">
                           <label className="text-slate-600">γ:</label>
-                          <input type="number" value={layer.gammaDry} onChange={(e) => updateLayer(layer.id, 'gammaDry', e.target.value)} className="w-12 text-right border rounded px-1 py-0.5" />
+                          <input type="number" value={layer.gammaDry} onChange={(e) => updateLayer(layer.id, 'gammaDry', e.target.value)} className="w-10 text-right border rounded px-1 py-0.5" />
                         </div>
                         <div className="flex justify-between items-center">
                           <label className="text-slate-600">γ<sub>sat</sub>:</label>
-                          <input type="number" value={layer.gammaSat} onChange={(e) => updateLayer(layer.id, 'gammaSat', e.target.value)} className="w-12 text-right border rounded px-1 py-0.5" />
+                          <input type="number" value={layer.gammaSat} onChange={(e) => updateLayer(layer.id, 'gammaSat', e.target.value)} className="w-10 text-right border rounded px-1 py-0.5" />
                         </div>
-                        <div className="col-span-2 flex justify-between items-center mt-1 pt-1 border-t border-slate-200">
-                          <span className="text-slate-600">K<sub>a</sub>: <span className="font-mono font-bold text-red-600">{ka_val.toFixed(3)}</span></span>
-                          <span className="text-slate-600">K<sub>p</sub>: <span className="font-mono font-bold text-teal-600">{kp_val.toFixed(3)}</span></span>
+                        <div className="flex justify-between items-center mt-1 pt-1 border-t border-slate-200">
+                          <span className="text-slate-600">K<sub>a</sub>: <span className="font-mono font-bold text-red-600">{ka_val.toFixed(2)}</span></span>
+                          <span className="text-slate-600">K<sub>p</sub>: <span className="font-mono font-bold text-teal-600">{kp_val.toFixed(2)}</span></span>
                         </div>
                       </div>
                     </div>
@@ -1135,47 +1100,32 @@
             </div>
           </div>
 
-          {/* --- ΔΕΞΙΑ ΣΤΗΛΗ: ΟΠΤΙΚΟΠΟΙΗΣΗ ΤΑΣΕΩΝ --- */}
-          <div className="lg:col-span-9 flex flex-col gap-6">
+          {/* Αυξημένος χώρος για SVG (lg:col-span-10) */}
+          <div className="lg:col-span-10 flex flex-col gap-6">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 overflow-x-auto flex flex-col items-center relative">
               
-              {/* ΔΙΑΚΟΠΤΗΣ ΤΑΣΕΙΣ/ΔΥΝΑΜΕΙΣ/ΣΥΝΙΣΤΑΜΕΝΕΣ */}
               <div className="flex justify-center mb-6">
                 <div className="inline-flex bg-slate-100 rounded-lg p-1 border border-slate-200">
-                  <button 
-                    onClick={() => setDisplayMode('stresses')}
-                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'stresses' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Κατανομές Τάσεων
-                  </button>
-                  <button 
-                    onClick={() => setDisplayMode('forces')}
-                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'forces' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Συνολικές Δυνάμεις
-                  </button>
-                  <button 
-                    onClick={() => setDisplayMode('resultants')}
-                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'resultants' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Συνισταμένες
-                  </button>
+                  <button onClick={() => setDisplayMode('stresses')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'stresses' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Κατανομές Τάσεων</button>
+                  <button onClick={() => setDisplayMode('forces')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'forces' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Συνολικές Δυνάμεις</button>
+                  <button onClick={() => setDisplayMode('resultants')} className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${displayMode === 'resultants' ? 'bg-white text-blue-700 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Συνισταμένες</button>
                 </div>
               </div>
               
-              <div className="flex flex-row justify-center items-start min-w-[800px] w-full bg-white rounded-xl">
-                <svg viewBox={`0 -30 ${totalSvgW} ${svgH + 60}`} className="w-full h-auto max-h-[500px]" style={{ minHeight: '450px' }}>
+              <div className="flex flex-row justify-center items-start min-w-[950px] w-full bg-white rounded-xl">
+                <svg viewBox={`0 -30 ${totalSvgW} ${svgH + 60}`} className="w-full h-auto max-h-[550px]" style={{ minHeight: '450px' }}>
                   <defs>
                     <marker id="arr-water" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
                     <marker id="arr-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0d9488" /></marker>
                     <marker id="arr-vert" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#7c3aed" /></marker>
                     <marker id="arr-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
                     <marker id="arr-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" /></marker>
+                    <marker id="arr-q" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#d97706" /></marker>
                     <marker id="arr-res-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b91c1c" /></marker>
                     <marker id="arr-res-pass" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e" /></marker>
                   </defs>
 
-                  {/* --- 1. ΥΔΡΟΣΤΑΤΙΚΗ ΑΡΙΣΤΕΡΑ (ΚΑΤΑΝΤΗ) --- */}
+                  {/* 1. ΥΔΡΟΣΤΑΤΙΚΗ ΑΡΙΣΤΕΡΑ */}
                   <g transform={`translate(0, 0)`}>
                     <text x={wWater - 5} y="-15" fontSize="12" fill="#3b82f6" fontWeight="bold" textAnchor="end">u</text>
                     <line x1={wWater} y1="0" x2={wWater} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
@@ -1189,9 +1139,9 @@
                     {displayMode === 'forces' && renderForcesVisuals(fWL, wWater, "#3b82f6", "arr-water", false)}
                   </g>
 
-                  {/* --- 2. ΠΑΘΗΤΙΚΕΣ (ΑΡΙΣΤΕΡΑ) --- */}
+                  {/* 2. ΠΑΘΗΤΙΚΕΣ ΑΡΙΣΤΕΡΑ */}
                   <g transform={`translate(${wWater}, 0)`}>
-                    <text x={wEarthL - 5} y="-15" fontSize="12" fill="#0d9488" fontWeight="bold" textAnchor="end">Παθητικές σ'p</text>
+                    <text x={wEarthL - 5} y="-15" fontSize="12" fill="#0d9488" fontWeight="bold" textAnchor="end">Οριζόντιες Παθητικές σ'p</text>
                     <line x1={wEarthL} y1={excavationH*40} x2={wEarthL} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
                     {segmentsL.map((seg, i) => (
                       <g key={`pl-${i}`}>
@@ -1206,7 +1156,7 @@
                     {displayMode === 'forces' && renderForcesVisuals(fPL, wEarthL, "#0d9488", "arr-pass", false)}
                   </g>
 
-                  {/* --- 2B. ΚΑΤΑΚΟΡΥΦΕΣ ΕΝΕΡΓΕΣ ΤΑΣΕΙΣ (ΑΡΙΣΤΕΡΑ) --- */}
+                  {/* 2B. ΚΑΤΑΚΟΡΥΦΕΣ ΕΝΕΡΓΕΣ ΤΑΣΕΙΣ (ΑΡΙΣΤΕΡΑ) */}
                   <g transform={`translate(${wWater + wEarthL}, 0)`}>
                     <text x={wVertL - 5} y="-15" fontSize="12" fill="#7c3aed" fontWeight="bold" textAnchor="end">σ'v</text>
                     <line x1={wVertL} y1={excavationH*40} x2={wVertL} y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
@@ -1219,11 +1169,23 @@
                     ))}
                   </g>
 
-                  {/* --- 3. ΚΕΝΤΡΙΚΟ ΦΥΣΙΚΟ ΜΟΝΤΕΛΟ --- */}
+                  {/* 3. ΚΕΝΤΡΙΚΟ ΦΥΣΙΚΟ ΜΟΝΤΕΛΟ */}
                   <g transform={`translate(${wWater + wEarthL + wVertL}, 0)`} 
                       onMouseMove={handleSvgMove} onMouseLeave={() => setHoverZ(null)} onClick={handleSvgClick} 
                       className="cursor-crosshair"
                   >
+                    {/* Ένδειξη Φορτίου q στο Φυσικό Μοντέλο */}
+                    {qLoad > 0 && (
+                      <g transform={`translate(${wCenter/2}, -15)`}>
+                        <rect x="0" y="-10" width={wCenter/2} height="10" fill="#fef3c7" opacity="0.8"/>
+                        <line x1="0" y1="0" x2={wCenter/2} y2="0" stroke="#d97706" strokeWidth="2"/>
+                        {[10, 30, 50, 70].map(x => (
+                          <line key={x} x1={x} y1="-10" x2={x} y2="0" stroke="#d97706" strokeWidth="1.5" markerEnd="url(#arr-q)"/>
+                        ))}
+                        <text x={wCenter/4} y="-15" fontSize="10" fill="#d97706" fontWeight="bold" textAnchor="middle">q={qLoad}kPa</text>
+                      </g>
+                    )}
+
                     {layers.map((l, i) => {
                       const nextZ = layers[i+1]?.z || totalH;
                       if (nextZ <= l.z) return null;
@@ -1250,17 +1212,17 @@
                       <line key={`cl-${i}`} x1="0" y1={l.z*40} x2={wCenter} y2={l.z*40} stroke="#ca8a04" strokeWidth="1" strokeDasharray="2 2" opacity="0.5"/>
                     ))}
 
-                    {hoverZ !== null && hoverZ > 0 && hoverZ < totalH && !layers.some(l => l.z === hoverZ) && (
-                      <g>
-                        <line x1="0" y1={hoverZ*40} x2={wCenter} y2={hoverZ*40} stroke="#ef4444" strokeWidth="1.5" strokeDasharray="4 4" />
-                        <text x="4" y={hoverZ*40 - 4} fontSize="9" fill="#ef4444" fontWeight="bold">+ Προσθήκη Στρώσης {hoverZ.toFixed(1)}m</text>
+                    {/* Ταμπελάκια μηδενισμού οριζόντιας τάσης (z0) */}
+                    {zeroDepthsR.map(z => (
+                      <g key={`z0-${z}`}>
+                        <rect x={wCenter/2 + 2} y={z*40 - 7} width="35" height="14" rx="3" fill="#f97316" />
+                        <text x={wCenter/2 + 19} y={z*40 + 3} fontSize="9" fill="#fff" fontWeight="bold" textAnchor="middle">z0={z.toFixed(1)}</text>
                       </g>
-                    )}
+                    ))}
 
                     {(() => {
                       let wallLabels = new Set([0, excavationH, hwActive, hwPassive, ...layers.map(l => l.z)]);
                       let uniqueZ = Array.from(wallLabels).filter(z => z >= 0 && z <= totalH).sort((a,b)=>a-b);
-                      
                       return uniqueZ.map((z, i) => (
                         <g key={`wlbl-${i}`}>
                           <rect x={wCenter/2 - 16} y={z*40 - 8} width="32" height="16" rx="4" fill="#1e293b" />
@@ -1275,7 +1237,7 @@
                       <text x="0" y="26" fontSize="11" fill="#1e293b" fontWeight="bold" textAnchor="middle">Σημείο Ισορροπίας (z={totalH}m)</text>
                     </g>
 
-                    {/* --- ΣΥΝΙΣΤΑΜΕΝΕΣ ΔΥΝΑΜΕΙΣ --- */}
+                    {/* ΣΥΝΙΣΤΑΜΕΝΕΣ */}
                     {displayMode === 'resultants' && Fa_total > 0 && (
                       <g>
                         <line x1={wCenter/2 + 75} y1={(totalH - yA) * 40} x2={wCenter/2 + 3} y2={(totalH - yA) * 40} stroke="#b91c1c" strokeWidth="3.5" markerEnd="url(#arr-res-act)" />
@@ -1293,7 +1255,7 @@
                     )}
                   </g>
 
-                  {/* --- 3B. ΚΑΤΑΚΟΡΥΦΕΣ ΕΝΕΡΓΕΣ ΤΑΣΕΙΣ (ΔΕΞΙΑ) --- */}
+                  {/* 3B. ΚΑΤΑΚΟΡΥΦΕΣ ΕΝΕΡΓΕΣ ΤΑΣΕΙΣ (ΔΕΞΙΑ) */}
                   <g transform={`translate(${wWater + wEarthL + wVertL + wCenter}, 0)`}>
                     <text x="5" y="-15" fontSize="12" fill="#7c3aed" fontWeight="bold" textAnchor="start">σ'v</text>
                     <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
@@ -1306,9 +1268,9 @@
                     ))}
                   </g>
 
-                  {/* --- 4. ΕΝΕΡΓΗΤΙΚΕΣ (ΔΕΞΙΑ) --- */}
+                  {/* 4. ΕΝΕΡΓΗΤΙΚΕΣ (ΔΕΞΙΑ) */}
                   <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR}, 0)`}>
-                    <text x="5" y="-15" fontSize="12" fill="#ef4444" fontWeight="bold" textAnchor="start">Ενεργητικές σ'a</text>
+                    <text x="5" y="-15" fontSize="12" fill="#ef4444" fontWeight="bold" textAnchor="start">Οριζόντιες Ενεργές σ'h</text>
                     <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
                     {segmentsR.map((seg, i) => {
                       if (displayMode === 'forces' && seg.isNeg) return null; 
@@ -1332,8 +1294,22 @@
                     {displayMode === 'forces' && renderForcesVisuals(fAR, 0, "#ef4444", "arr-act", true)}
                   </g>
 
-                  {/* --- 5. ΥΔΡΟΣΤΑΤΙΚΗ ΔΕΞΙΑ (ΑΝΑΝΤΗ) --- */}
+                  {/* 4B. ΦΟΡΤΙΟ q (ΔΕΞΙΑ) */}
                   <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR}, 0)`}>
+                    <text x="5" y="-15" fontSize="12" fill="#d97706" fontWeight="bold" textAnchor="start">Λόγω q</text>
+                    <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
+                    {segmentsQ.map((seg, i) => (
+                      <g key={`q-${i}`}>
+                        <polygon points={`0,${seg.zTop*40} ${seg.valTop*scaleQ},${seg.zTop*40} ${seg.valBot*scaleQ},${seg.zBot*40} 0,${seg.zBot*40}`} fill="rgba(245,158,11,0.15)" stroke="#d97706" strokeWidth="1.5" opacity={displayMode === 'stresses' ? 1 : 0.4} />
+                        {displayMode === 'stresses' && renderArrows(seg, 0, scaleQ, "#d97706", "arr-q", true)}
+                        {displayMode === 'stresses' && renderLabels(seg, 0, scaleQ, true)}
+                      </g>
+                    ))}
+                    {displayMode === 'forces' && renderForcesVisuals(fQ, 0, "#d97706", "arr-q", true)}
+                  </g>
+
+                  {/* 5. ΥΔΡΟΣΤΑΤΙΚΗ ΔΕΞΙΑ (ΑΝΑΝΤΗ) */}
+                  <g transform={`translate(${wWater + wEarthL + wVertL + wCenter + wVertR + wEarthR + wQ}, 0)`}>
                     <text x="5" y="-15" fontSize="12" fill="#3b82f6" fontWeight="bold" textAnchor="start">u</text>
                     <line x1="0" y1="0" x2="0" y2={svgH} stroke="#cbd5e1" strokeWidth="2" />
                     {waterForceR.map((seg, i) => (
@@ -1350,34 +1326,31 @@
               </div>
             </div>
 
-            {/* --- ΠΙΝΑΚΕΣ ΑΠΟΤΕΛΕΣΜΑΤΩΝ --- */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div className="xl:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">Αναλυτικός Πίνακας Δυνάμεων & Τάσεων (ανά στρώση)</h3>
+                <h3 className="font-bold text-slate-800 mb-4 border-b pb-2">Αναλυτικός Πίνακας Δυνάμεων & Τάσεων</h3>
                 <table className="w-full text-left text-xs text-slate-600">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
                       <th className="p-2 font-bold">A/A</th>
                       <th className="p-2 font-bold">Περιοχή</th>
-                      <th className="p-2 font-bold">Βάθος z (m)</th>
+                      <th className="p-2 font-bold">z (m)</th>
                       <th className="p-2 font-bold">Σχήμα</th>
-                      <th className="p-2 font-bold text-right">Τάση Πάνω (kPa)</th>
-                      <th className="p-2 font-bold text-right">Τάση Κάτω (kPa)</th>
-                      <th className="p-2 font-bold text-right text-slate-800">Δύναμη F (kN/m)</th>
+                      <th className="p-2 font-bold text-right">Τάση Πάνω</th>
+                      <th className="p-2 font-bold text-right">Τάση Κάτω</th>
+                      <th className="p-2 font-bold text-right text-slate-800">Δύναμη (kN/m)</th>
                       <th className="p-2 font-bold text-right">Μοχλός (m)</th>
                       <th className="p-2 font-bold text-right text-slate-800">Ροπή (kNm/m)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {allForcesCombined.length === 0 ? (
-                      <tr><td colSpan="9" className="p-4 text-center text-slate-400">Δεν υπάρχουν δεδομένα δυνάμεων</td></tr>
+                      <tr><td colSpan="9" className="p-4 text-center text-slate-400">Δεν υπάρχουν δυνάμεις</td></tr>
                     ) : (
                       allForcesCombined.map(f => (
                         <tr key={f.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                          <td className="p-2 font-bold">
-                            <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">{f.id}</span>
-                          </td>
-                          <td className={`p-2 font-bold ${f.group.includes('Ενεργητική') ? 'text-red-600' : f.group.includes('Παθητική') ? 'text-teal-600' : 'text-blue-600'}`}>{f.group}</td>
+                          <td className="p-2 font-bold"><span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">{f.id}</span></td>
+                          <td className={`p-2 font-bold ${f.group.includes('Ενεργητική') ? 'text-red-600' : f.group.includes('Παθητική') ? 'text-teal-600' : f.group.includes('Φορτίο') ? 'text-amber-600' : 'text-blue-600'}`}>{f.group}</td>
                           <td className="p-2">{f.zTop.toFixed(2)} - {f.zBot.toFixed(2)}</td>
                           <td className="p-2">{f.type === 'rect' ? 'Ορθογώνιο' : 'Τρίγωνο'}</td>
                           <td className="p-2 text-right">{f.vTop.toFixed(1)}</td>
@@ -1397,11 +1370,11 @@
                 <div className="space-y-4 text-sm">
                   <div className="flex justify-between items-center bg-slate-700/50 p-3 rounded-lg">
                     <span className="text-slate-300">Συνολική Ροπή Ώθησης (M<sub>A</sub>)</span>
-                    <span className="font-mono font-bold text-red-400 text-lg">{MA_total.toFixed(1)} <span className="text-xs font-sans font-normal">kNm/m</span></span>
+                    <span className="font-mono font-bold text-red-400 text-lg">{MA_total.toFixed(1)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-slate-700/50 p-3 rounded-lg">
                     <span className="text-slate-300">Συνολική Ροπή Αντίστασης (M<sub>P</sub>)</span>
-                    <span className="font-mono font-bold text-teal-400 text-lg">{MP_total.toFixed(1)} <span className="text-xs font-sans font-normal">kNm/m</span></span>
+                    <span className="font-mono font-bold text-teal-400 text-lg">{MP_total.toFixed(1)}</span>
                   </div>
                   
                   <div className={`mt-6 p-4 rounded-xl border-2 flex flex-col items-center justify-center text-center ${FS_overturning >= 1.5 ? 'border-green-500 bg-green-500/10' : FS_overturning >= 1 ? 'border-amber-500 bg-amber-500/10' : 'border-red-500 bg-red-500/10'}`}>
@@ -1419,9 +1392,6 @@
                       )}
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 text-center italic mt-2">
-                    * Ο υπολογισμός των ροπών γίνεται γύρω από τον πόδα του τοίχου σε βάθος z = {totalH}m.
-                  </p>
                 </div>
               </div>
             </div>
@@ -1431,12 +1401,12 @@
       );
     };
 
-    // --- MAIN APP (State & Router) ---
+    // --- MAIN APP ---
     function App() {
       const [activeTab, setActiveTab] = useState('mohr');
 
       return (
-        <div className="min-h-screen max-w-[1400px] mx-auto p-6">
+        <div className="min-h-screen max-w-[1500px] mx-auto p-6">
           <Header />
           <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
           
@@ -1449,7 +1419,6 @@
       );
     }
 
-    // --- RENDER APP ---
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
